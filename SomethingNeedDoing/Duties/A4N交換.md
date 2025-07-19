@@ -1,4 +1,4 @@
-## 【合法】アレキ起動編4層(ノーマル)装備交換 <br/>
+## 【合法】アレキ起動編4層(ノーマル)装備交換 (Native)<br/>
 
 交換NPC「サービナ(イディルシャイア)」の前で実行すると、起動編4層(ノーマル)で交換可能な装備を各1個ずつ取得します。
 <br/>
@@ -9,12 +9,12 @@
 ```
 クラスやレベル、装備状態があわないためこのアイテムを装備することはできません。交換しますか？
 ```
+<br/>※動作未確認（交換用アイテムがない状態で動作することは確認しています）
 ```
-※まだ新SND対応させてません
-/target サビーナ <wait.0.5>
-/pinteract <wait.0.5>
-/pcall SelectIconString true 0 <wait.1>
-/pcall SelectString true 0 <wait.1>
+/target サビーナ
+/interact <wait.0.5>
+/callback SelectIconString true 0 <wait.0.5>
+/callback SelectString true 0 <wait.0.5>
 /callback ShopExchangeItem true 0 3 1 <wait.1>
 /callback ShopExchangeItemDialog true 0 <wait.1>
 /callback ShopExchangeItem true 0 4 1 <wait.1>
@@ -56,7 +56,7 @@
 /callback ShopExchangeItem true 0 22 1 <wait.1>
 /callback ShopExchangeItemDialog true 0 <wait.1>
 /callback ShopExchangeItem true -1 <wait.0.5>
-/pcall SelectString true 1 <wait.0.5>
+/callback SelectString true 1 <wait.0.5>
 /callback ShopExchangeItem true 0 2 1 <wait.1>
 /callback ShopExchangeItemDialog true 0 <wait.1>
 /callback ShopExchangeItem true 0 3 1 <wait.1>
@@ -82,7 +82,7 @@
 /callback ShopExchangeItem true 0 13 1 <wait.1>
 /callback ShopExchangeItemDialog true 0 <wait.1>
 /callback ShopExchangeItem true -1 <wait.0.5>
-/pcall SelectString true 2 <wait.0.5>
+/callback SelectString true 2 <wait.0.5>
 /callback ShopExchangeItem true 0 2 1 <wait.1>
 /callback ShopExchangeItemDialog true 0 <wait.1>
 /callback ShopExchangeItem true 0 3 1 <wait.1>
@@ -116,5 +116,5 @@
 /callback ShopExchangeItem true 0 17 1 <wait.1>
 /callback ShopExchangeItemDialog true 0 <wait.1>
 /callback ShopExchangeItem true -1 <wait.0.5>
-/pcall SelectString true 3
+/callback SelectString true 3
 ```
