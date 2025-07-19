@@ -2,6 +2,7 @@
 
 交換NPC「サービナ(イディルシャイア)」の前で実行すると、起動編4層(ノーマル)で交換可能な装備を各1個ずつ取得します。
 <br/>
+<br/>
 > [!IMPORTANT]
 > 必須プラグイン : Pandora's Box / YesAlready<br/>
 >YesAlreadyで下記文言をYesNoに登録してから実行してください
