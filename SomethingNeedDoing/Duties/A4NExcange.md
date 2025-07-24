@@ -13,7 +13,6 @@ Author: 赤月, 小鳥遊レイ
 
 1.  以下の項目にチェックを入れる。<br/>
 Bothers -> Shops -> ShopExchangeItemDialog<br/>
-<br/>
 
 2.  YesNoに下記の文章を登録する。<br/>
 ```
