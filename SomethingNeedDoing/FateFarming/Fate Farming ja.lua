@@ -396,6 +396,19 @@ configs:
 ]]
 
 
+--[[
+やるリスト
+    ☑バイカラージェム交換アイテムリストを入力するところの説明に転記
+    ☑バイカラージェム交換アイテムリストを日本語化
+    ・BossFatesClass = nilの行数確認、ジョブ設定について説明記載
+    ・MountToUseの設定行数を確認する（完成してから
+    ・ResummonChocoboTimeLeftの設定行数確認
+    ・InventorySlotsLeftの設定行数確認
+    ☑山岳の完全菜食主義者をどんなFATEか確かめる→護衛FATE
+    ・ResummonChocoboTimeLeftの呼び出し秒数について書く
+    ・3.0.15jaにする
+]]--
+
 
 --[[
 ********************************************************************************
@@ -3352,7 +3365,7 @@ Potion                          = Config.Get("Potion")
 
 -- バディチョコボ
 ResummonChocoboTimeLeft            = 3 * 60        --FATE中にバディチョコボが帰還しないよう、タイマーが設定した秒数以下になったら再召喚する
-ChocoboStance                   = Config.Get("Chocobo Companion Stance") -- オプション: 追従, フリーファイト, ディフェンダースタンス, ヒーラースタンス, アタッカースタンス, None バディチョコボを呼び出さない場合はNoneを選択。
+ChocoboStance                   = Config.Get("Chocobo Companion Stance") -- オプション: 追従, フリーファイト, ディフェンダースタンス, ヒーラースタンス, アタッカースタンス, None バディチョコボを呼び出さない場合はNoneを選択
 ShouldSummonChocobo =  ChocoboStance == "追従"
                     or ChocoboStance == "フリーファイト"
                     or ChocoboStance == "ディフェンダースタンス"
@@ -3361,7 +3374,7 @@ ShouldSummonChocobo =  ChocoboStance == "追従"
 ShouldAutoBuyGysahlGreens       = Config.Get("Buy Gysahl Greens?")
 MountToUse                      = "マウント・ルーレット"       --FATE間の移動に使用するマウント
 
--- リテイナー 
+-- リテイナー
 
 
 
@@ -3622,7 +3635,7 @@ while not StopScript do
 end
 Engines.Run("/vnav stop")
 
-if Player.Job.Id ~= ｚ.Id then
+if Player.Job.Id ~= MainClass.Id then
     Engines.Run("/gs change "..MainClass.Name)
 end
 --#メインセクションここまで
