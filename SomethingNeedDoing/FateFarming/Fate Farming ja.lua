@@ -1,290 +1,359 @@
 --[=====[
 [[SND Metadata]]
-author: pot0to, 小鳥遊レイ
-version: 3.0.9
-description: >-
-  Fate farming script with the following features:
-  以下の機能を備えたFATEファームスクリプト:
-
-  - Can purchase Bicolor Gemstone Vouchers (both old and new) when your gemstones are almost capped
-  - バイカラージェムが上限に近くなったら新旧バイカラージェム納品証を交換できます
-
-  - Priority system for Fate selection: distance w/ teleport > most progress > is bonus fate > least time left > distance
-  - FATE選択の優先順位: テレポでの距離 > 最も進行している > ボーナスFATE > 残り時間少ない > 距離
-
-  - Will prioritize Forlorns when they show up during Fate
-  - FATE中にフォーローン系が出現した場合、優先的に選択されます
-
-  - Can do all fates, including NPC collection fates
-  - アイテム集めFATEを含むすべてのFATEを実行できます
-
-  - Revives upon death and gets back to fate farming
-  - 死亡時は復活しFATEファームに戻ります
-
-  - Attempts to change instances when there are no fates left in the zone
-  - エリア内のFATEが枯れた場合はインスタンス変更します
-
-  - Can process your retainers and Grand Company turn ins, then get back to fate farming
-  - リテイナーやグラカン納品を行いFATEファームに戻ります
-
-  - Autobuys gysahl greens and grade 8 dark matter when you run out
+author: baanderson40 || orginially pot0to  ||  日本語訳 小鳥遊レイ
+version: 3.0.11ja
+description: |
+  このスクリプトでできること: 
+  - バイカラージェムの所持数が上限に近づくとバイカラージェム納品証（新旧どちらでも）へ交換に行きます
+  - FATE選択の優先順位: テレポ込みの距離 > FATE進行度が高い > ボーナスFATE > 残り時間少ない > 距離
+  - FATE中にフォーローン系モンスターが出現した場合は優先的に選択します
+  - アイテム収集FATEを含むすべてのFATEを実行できます
+  - 戦闘不能状態になった場合はホームポイントに戻りFATEファームへ復帰します
+  - エリア内のFATEが枯れた場合はインスタンスを変更します
+  - リテイナーの再出発やGC納品を行いFATEファームへ戻ります
   - ギサールの野菜とG8ダークマターが不足した場合は自動で購入します
-
-  - Has companion scripts dedicated to atma farming, or you can write your own! (See section for companion scripts)
-  - アートマファーム専用のコンパニオンスクリプトがあります。または、独自のスクリプトを作成することもできます！（コンパニオンスクリプトのセクションを参照）
-    これは何のことかわからない。スクリプト内にも元のスクリプトを置いてあるGitHubにもそれっぽいものは見つけられない。
-    編集元GitHub -> https://github.com/pot0to/pot0to-SND-Scripts/blob/main/New%20SND/Fate%20Farming/Fate%20Farming.lua
+  - アートマファーム専用のコンパニオンスクリプトがあります。または、独自のスクリプトを作成することもできます！（コンパニオンスクリプトのセクションを参照）恐らく機能しません。
+    pot0to's GitHub    https://github.com/pot0to/pot0to-SND-Scripts/blob/main/New%20SND/Fate%20Farming/Fate%20Farming.lua
+    baanderson40's GitHub    https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua
+    Support via    https://ko-fi.com/baanderson40
+  ※小鳥遊コメント※
+  - オプションプラグインでGC納品用にDeliverooが必要と書かれていますが、AutoRetainerで納品するように書かれており、また実際の動作でもAutoRetainerで納品が行われています。軍票交換品の設定などにご注意ください。
+  - 3.0.11jaにおいてBMRのみを有効化した状態では移動を行うのみで戦闘してくれませんでした。別途スキル回しプラグインを使用してください。(動作テストではBMR+RSRを使用)
+  - 3356行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
+  - 3481行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
+  - 歯車からの設定項目「Echo logs」について、AllにするとFATE戦闘中に「[FATE] Not clearing WaitingForFateRewards: fate state=Running: 4, expected one of [Ended: Ended: 7, Failed: Failed: 8] 」というログが流れ続けるのでおすすめはしません。
 
 plugin_dependencies:
- 必須プラグイン:
-  - Lifestream
-  - vnavmesh
-  - TextAdvance
+- Lifestream
+- vnavmesh
+- TextAdvance
+
 configs:
-  Food:
-    default: 
-    description: Leave blank if you don't want to use any food. If its HQ include <hq> next to the name "Baked Eggplant <hq>"
-    type: string
-  Potion:
-    default:
-    description: Leave blank if you don't want to use any potions. If its HQ include <hq> next to the name "Superior Spiritbond Potion <hq>"
-    type: string
-  Chocobo Companion Stance:
-    default: "ヒーラースタンス"
-    description: Options - 追従/フリーファイト/ディフェンダースタンス/ヒーラースタンス/アタッカースタンス/None. Will not summon chocobo if set to "None"
-    type: string
-  Buy Gysahl Greens?:
-    default: true
-    description: Automatically buys a 99 stack of Gysahl Greens from the Limsa gil vendor if none in inventory
-    type: boolean
-  Ignore FATE if progress is over (%):
-    default: 80
-    type: int
-    min: 0
-    max: 100
-    required: true
-  Ignore FATE if duration is less than (mins):
-    default: 3
-    type: int
-    min: 0
-    max: 100
-    required: true
-  Ignore FATE if duration is less than (mins):
-    default: 3
-    type: int
-    min: 0
-    max: 100
-    required: true
-  Ignore boss FATEs until progress is at least (%):
-    default: 0
-    type: int
-    min: 0
-    max: 100
-    required: true
-  Ignore Special FATEs until progress is at least (%):
-    default: 20
-    type: int
-    min: 0
-    max: 100
-    required: true
-  Do collection FATEs?:
-    default: true
-    type: boolean
-  Do only bonus FATEs?:
-    default: false
-    type: boolean
-  Max melee distance:
-    default: 2.5
-    type: float
-    min: 0
-    max: 30
-    required: true
-  Max ranged distance:
-    default: 20
-    type: float
-    min: 0
-    max: 30
-    required: true
-  Forlorns:
-    default: All
-    type: string
-    description: Options - All/Small/None
-    required: true
-  Change instances if no FATEs?:
-    default: true
-    type: boolean
-  Exchange bicolor gemstones for:
-    default: Turali Bicolor Gemstone Voucher
-    type: string
-    description: Leave blank if you don't want to spend your bicolors
-  Self repair?:
-    default: true
-    description: If checked, will attempt to repair your gear. If not checked, will go to Limsa mender.
-    type: boolean
-  Pause for retainers?:
-    default: true
-    type: boolean
-  Dump extra gear at GC?:
-    default: true
-    type: boolean
-    description: Used with retainers, in case they come back with too much stuff and clog your inventory.
-  Return on death?:
-    default: true
-    type: boolean
-    description: Auto accept the box to return to home aetheryte when you die.
-  Echo logs:
-    default: All
-    type: string
-    description: Options - All/Gems/None
   Rotation Plugin:
     default: "Any"
     type: string
-    description: Options - Any/Wrath/RotationSolver/BossMod/BossModReborn. What Rotation Plugin to use.
+    description: |
+      使用するRotation Plugin (自動スキル回しプラグイン) を入力。
+      入力可能な選択肢:
+        - Any
+        - Wrath
+        - RotationSolver
+        - BossMod
+        - BossModReborn
+      デフォルト: Any
+
   Dodging Plugin:
     default: "Any"
     type: string
-    description: Options - Any/BossMod/BossModReborn/None. What Dodging Plugin to use. If your RotationPlugin is BossModReborn/BossMod, then this will be overriden
-[[End Metadata]]
---]=====]
+    description: |
+      使用するAOE回避用プラグインを入力。
+      自動スキル回しプラグインにBossModRebornまたはBossModを使用する場合は、回避用プラグインも自動的に同じものを使用します。
+      入力可能な選択肢:
+        - Any
+        - BossMod
+        - BossModReborn
+        - None
+      デフォルト: Any
 
---[[
-日本語コンフィグ説明
-コンフィグ:
-  食事:
-    デフォルト:
-    説明: 食事を使用しない場合は空白のままにしてください。HQの場合は「ベイクドイダークエッグプラント <hq>」のように、アイテム名の後に<hq>と記述してください
-    種類: 文字列
+  BMR/VBM Specific settings:
+    default: false
+    type: boolean
+    description: |
+     BMR/VBMの詳細設定を使用する。
+     自動スキル回しプラグインとしてBMR/VBMを使用している場合のみ使用可能。
+     デフォルト: false(チェックOFF)
 
-  薬品:
-    デフォルト:
-    説明: 薬品を使用しない場合は空白のままにしてください。HQの場合は「極精錬薬 <hq>」のように、アイテム名の後に<hq>と記述してください。
-    種類: 文字列
-    
-  バディチョコボスタンス:
-    デフォルト: "ヒーラスタンス"
-    説明: オプション - 追従/フリーファイト/ディフェンダースタンス/ヒーラースタンス/アタッカースタンス/なし　バディチョコボを呼び出さない場合は"None"を使用してください。
-    種類: 文字列
+  Single Target Rotation:
+    default: ""
+    type: string
+    description: |
+     単体攻撃用のスキル回しプリセット名を入力(フォーローン系ボーナスモブ向け)。
+     この設定を使用する際は自動ターゲットをオフにしてください。
+     デフォルト: 空欄
 
-  ギサールの野菜を購入する？
-    デフォルト: true (はい)
-    説明: 所持品にギサールの野菜がない場合、自動でリムサのNPCからギルを使って99個購入します
-    種類: 論理型 (true or false)
+  AoE Rotation:
+    default: ""
+    type: string
+    description: |
+     バースト込み範囲攻撃用のスキル回しプリセット名を入力。
+     デフォルト: 空欄
 
-  FATEを無視する進行度 (%):
-    デフォルト: 80
-    種類: 数値(整数)
-    最小: 0
-    最大: 100
-    必須: true
+  Hold Buff Rotation:
+    default: ""
+    type: string
+    description: |
+     バーストを温存するときに使用するプリセット名を入力。
+     FATEが設定した進行度(%)に達したときに使用されます。
+     デフォルト: 空欄
 
-  FATEを無視する残り時間(最小):
-    デフォルト: 3
-    種類: 数値(整数)
-    最小: 0
-    最大: 100
-    必須: true
+  Percentage to Hold Buff:
+    default: 65
+    type: int
+    description: |
+     バーストを温存するFATE進行度(%)を入力。
+     リキャスト毎にバーストするのが理想ですが、FATE進行度が70%を超えてからバーストした場合、討伐が早すぎて数秒無駄になることがあります。
+     デフォルト: 65
+     入力できる値: 整数
 
-  Ignore FATE if duration is less than (mins):
-  上と同じ。多分いらん。
-    default: 3
+  Food:
+    default: 
+    description: |
+     使用する飯の名前を入力。使用しない場合は空欄にしてください。
+     HQを使用する場合はアイテム名の後ろに<hq>と記載してください。例: ベイクドダークエッグプラント <hq>
+     デフォルト: 空欄
+    type: string
+
+  Potion:
+    default:
+    description: |
+     使用する薬品の名前を入力。使用しない場合は空欄にしてください。
+     HQを使用する場合はアイテム名の後ろに<hq>と記載してください。例: 極精錬薬 <hq>
+     デフォルト: 空欄
+    type: string
+
+  Max melee distance:
+    default: 2.5
+    description: |
+     近接ジョブ使用時の敵からの最大距離を入力。
+     デフォルト: 2.5
+     入力できる値: 小数
+    type: float
+    min: 0
+    max: 30
+    required: true
+
+  Max ranged distance:
+    default: 20
+    description: |
+     遠隔ジョブ使用時の敵からの最大距離を入力。
+     デフォルト: 20
+     入力できる値: 小数
+    type: float
+    min: 0
+    max: 30
+    required: true
+
+  Ignore FATE if progress is over (%):
+    default: 80
+    description: |
+     FATEを無視する進行度(%)を入力。
+     デフォルト: 80
+     入力できる値: 整数
     type: int
     min: 0
     max: 100
     required: true
 
-  ボスFATEは進行度が設定した%になるまでは無視します:
-    デフォルト: 0
-    種類: 数値(整数)
-    最小: 0
-    最大: 100
-    必須: true
+  Ignore FATE if duration is less than (mins):
+    default: 3
+    description: |
+     FATEを無視する残り時間(分)を入力。
+     デフォルト: 3
+     入力できる値: 整数
+    type: int
+    min: 0
+    max: 100
+    required: true
 
-  スペシャルFATEは進行度が設定した%になるまでは無視します: 
-    デフォルト: 20
-    種類: 数値(整数)
-    最小: 0
-    最大: 100
-    必須: true
+  Ignore boss FATEs until progress is at least (%):
+    default: 0
+    description: |
+     ボスFATEに向かう進行度(%)を入力。
+     設定した進行度に到達するまではボスFATEを無視します。
+     デフォルト: 0
+     入力できる値: 整数
+    type: int
+    min: 0
+    max: 100
+    required: true
 
-  アイテム集めFATEはやりますか?: 
-    デフォルト: true
-    種類: 論理型 (true or false)
+  Ignore Special FATEs until progress is at least (%):
+    default: 20
+    description: |
+     大型FATEに向かう進行度(%)を入力。
+     設定した進行度に到達するまでは大型FATEを無視します。
+     デフォルト: 20
+     入力できる値: 整数
+    type: int
+    min: 0
+    max: 100
+    required: true
 
-  ボーナス有FATEのみやりますか?:
-    デフォルト: false
-    種類: 論理型 (true or false)
+  Do collection FATEs?:
+    default: true
+    description: |
+     アイテム収集FATEを行う場合はチェックを入力。
+     デフォルト: true(チェックON)
+    type: boolean
 
-  近接ジョブの最大距離: 
-    デフォルト: 2.5
-    種類: 数値(小数)
-    最小: 0
-    最大: 30
-    必須: true
+  Do only bonus FATEs?:
+    default: false
+    description: |
+     ボーナス有のFATEのみを行う場合はチェックを入力。
+     デフォルト: false(チェックOFF)
+    type: boolean
 
-  遠隔ジョブの最大距離:
-    デフォルト: 20
-    種類: 数値(小数)
-    最小: 0
-    最大: 30
-    必須: true
+  Forlorns:
+    default: All
+    type: string
+    description: |
+      FATE中に出現するフォーローン系ボーナスモブへの攻撃対象を設定。
+      フォーローン・メイデンにのみ攻撃を行う場合は"Small"を入力してください。
+      フォーローン系ボーナスモブを攻撃しない場合は"None"を入力してください。
+      入力可能な選択肢:
+        - All
+        - Small
+        - None
+      デフォルト: All
+    required: true
 
-  フォーローン類:
-    デフォルト: All
-    種類: 文字列
-    description: Options - All/Small/None
-    説明: オプション - All(全部やる)/Small(メイデンだけやる)/None(やらない)
-    必須: true
+  Change instances if no FATEs?:
+    default: false
+    description: |
+     エリア内のFATEがなくなったときにインスタンスを変更する場合はチェックを入力。
+     デフォルト: false(チェックOFF)
+    type: boolean
 
-  FATE枯れたらインス変更する?
-    デフォルト: true
-    種類: 論理型 (true or false)
+  Exchange bicolor gemstones for:
+    default: バイカラージェム納品証【黄金】
+    type: string
+    description: |
+     バイカラージェムで交換するアイテム名を入力。
+     バイカラージェムを使用しない場合は空欄にしてください。
+      入力可能な選択肢:
+       - アームラ
+       - アックスビークの翼膜
+       - アルパカのフィレ肉
+       - アルマスティの毛
+       - エッグ・オブ・エルピス
+       - オウヴィボスの乳
+       - オピオタウロスの粗皮
+       - ガジャの粗皮
+       - ガルガンチュアの粗皮
+       - クンビーラの粗皮
+       - ゴンフォテリウムの粗皮
+       - サイガの粗皮
+       - シルバリオの粗皮
+       - スワンプモンクのモモ肉
+       - ダイナマイトの灰
+       - タンブルクラブの枯草
+       - チャイチャの刃爪
+       - デュナミスシャード
+       - ノパルテンダーのトゥナ
+       - バイカラージェム納品証
+       - バイカラージェム納品証【黄金】
+       - ハンサの笹身
+       - ハンマーヘッドダイルの粗皮
+       - ブラーシャの粗皮
+       - ブランチベアラーの果実
+       - ブレスト・オブ・エルピス
+       - ペタルダの鱗粉
+       - ベルカナの樹液
+       - ポイズンフロッグの粘液
+       - マウンテンチキンの粗皮
+       - ムースの肉
+       - メガマゲイの球茎
+       - ヤーコウの肩肉
+       - ルナテンダーの花
+       - レッサーアポリオンの甲殻
+       - ロネークの肩肉
+       - ロネークの獣毛
+     デフォルト: バイカラージェム納品証【黄金】
 
-  バイカラージェムで交換するアイテムは:
-    デフォルト: バイカラージェム納品証【黄金】
-    種類: 文字列
-    説明: バイカラージェムを使用したくない場合は空欄にしてください
+  Chocobo Companion Stance:
+    default: ヒーラースタンス
+    description: |
+     バディチョコボへ指示するスタンスを入力。
+     バディチョコボを呼び出さない場合は"None"を使用してください。 
+     入力可能な選択肢:
+      - 追従
+      - フリーファイト
+      - ディフェンダースタンス
+      - ヒーラースタンス
+      - アタッカースタンス
+      - None
+     デフォルト: ヒーラースタンス
+    type: string
 
-  自分で修理する?:
-    デフォルト: true
-    説明: trueの場合、自分で修理を行います。falseの場合はリムサの修理屋に向かいます。
-    種類: 論理型 (true or false)
+  Buy Gysahl Greens?:
+    default: true
+    description: |
+     所持品にギサールの野菜がないときに自動で購入する場合はチェックを入力。
+     チェックを入力した場合、リムサのNPC「ブルゲール商会 バンゴ・サンゴ」から99個購入します。
+     デフォルト: true(チェックON)
+    type: boolean
 
-  リテイナーが帰還したらFATEファームを一時停止する?
-    デフォルト: true
-    種類: 論理型 (true or false)
+  Self repair?:
+    default: true
+    description: |
+     自分で修理を行う場合はチェックを入力。
+     チェックを入力しない場合はリムサの修理屋で修理を行います。
+     デフォルト: true(チェックON)
+    type: boolean
 
-  余分な装備をグラカン納品する?
-    デフォルト: true
-    種類: 論理型 (true or false)
-    説明: リテイナーの持ち帰るもので所持品がいっぱいになるのを防止するのに使用されます
+  Pause for retainers?:
+    default: true
+    description: |
+     FATEを中断してリテイナーベンチャーを再出発させる場合はチェックを入力。
+     デフォルト: true(チェックON)
+    type: boolean
 
-  戦闘不能時はホームポイントに戻りますか?
-    デフォルト: true
-    種類: 論理型 (true or false)
-    説明: 戦闘不能になった際に、自動でホームポイントへ帰還します
+  Dump extra gear at GC?:
+    default: true
+    type: boolean
+    description: |
+     リテイナーの持ち帰った装備をGC納品する場合はチェックを入力。
+     リテイナーベンチャー再出発のオプションと組み合わせて使用することで、所持品の空き枠が0になるのを防ぎます。
 
-  Echoログ設定:
-    デフォルト: All
-    種類: 文字列
-    説明: オプション - All(全部)/Gems(ジェムのみ)/None(なし)
+  Return on death?:
+    default: true
+    type: boolean
+    description: |
+     戦闘不能になった場合に自動でホームポイントへ帰還する場合はチェックを入力。
 
-  自動スキル回しプラグイン:
-    デフォルト: "Any"
-    種類: 文字列
-    説明: オプション - Any/Wrath/RotationSolver/BossMod/BossModReborn. どの自動スキル回しプラグインを使用するか。
+  Echo logs:
+    default: Gems
+    type: string
+    description: |
+      echoに出力するログの種類を入力。All(全て),Gems(バイカラージェム関連のみ),None(無し)
+      入力可能な選択肢:
+        - All
+        - Gems
+        - None
+      デフォルト: Gems
 
-  ギミック処理プラグイン:
-    デフォルト: "Any"
-    種類: 文字列
-    説明: オプション - Any/BossMod/BossModReborn/None. どのギミック処理プラグインを使用するか。もしBossModReborn/BossModで自動スキル回しをする場合、これは上書きされます。
---]]
+[[End Metadata]]
+--]=====]
+
+
 
 --[[
+
 
 ********************************************************************************
 *                                  Changelog                                   *
 ********************************************************************************
-
+    -> 3.0.11ja by 小鳥遊レイ
+                日本語へ翻訳
+                日本語クライアント対応
+    -> 3.0.11   Revision rollup
+                Fixed Gysahl Greens purchases
+                Blacklisted "Plumbers Don't Fear Slimes" due to script crashing
+    -> 3.0.10   By baanderson40
+            a   Max melee distance fix.
+            b   WaitingForFateRewards fix.
+            c   Removed HasPlugin and implemented IPC.IsInstalled from SND **reversed**.
+            d   Removed Deliveroo and implemented AutoReainter GC Delievery.
+            e   Swapped echo yields for Engines.Run.
+            f   Added settions to config settings.
+            g   Fixed unexpected Combat.
+            h   Removed the remaining yields except for waits.
+            i   Ready function optimized and refactord.
+            j   Reworked Rotation and Dodging pluings.
+            k   Fixed Materia Extraction
+            l   Updated Config settings for BMR/VMR rotations
+            m   Added option to move to random location after fate if none are eligible.
+            n   Actually fixed WaitingForFateRewards & instance hopping.
     -> 3.0.9    By Allison.
                 Fix standing in place after fate finishes bug.
                 Add config options for Rotation Plugin and Dodging Plugin (Fixed bug when multiple solvers present at once)
@@ -300,46 +369,46 @@ configs:
     -> 3.0.0    Updated for SND2
 
 ********************************************************************************
-*                      Required Plugins (必須プラグイン)                        *
+*                                 必須プラグイン                                *
 ********************************************************************************
 
-以下のプラグインは必ず必要です:
+スクリプトの稼働に必要なプラグイン:
 
-    -> Something Need Doing [Expanded Edition] : (Main Plugin for everything to work)   https://puni.sh/api/repository/croizat
-    -> VNavmesh :   (for Pathing/Moving)    https://puni.sh/api/repository/veyn
-    -> Some form of rotation plugin for attacking enemies. Options are:
+    -> Something Need Doing [Expanded Edition] : (全動作に必須のメインプラグイン)   https://puni.sh/api/repository/croizat
+    -> VNavmesh :   (経路探索/移動用)    https://puni.sh/api/repository/veyn
+    -> 攻撃用のいずれかの自動スキル回しプラグイン。 選択肢は以下の通り。:
         -> RotationSolver Reborn: https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json       
         -> BossMod Reborn: https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json
-        -> Veyn's BossMod: https://puni.sh/api/repository/veyn
+        -> Veyns BossMod: https://puni.sh/api/repository/veyn
         -> Wrath Combo: https://love.puni.sh/ment.json
-    -> Some form of AI dodging. Options are: 
+    -> いずれかのAIによる回避動作用プラグイン。 選択肢は以下の通り。: 
         -> BossMod Reborn: https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json
-        -> Veyn's BossMod: https://puni.sh/api/repository/veyn
-    -> TextAdvance: (for interacting with Fate NPCs) https://github.com/NightmareXIV/MyDalamudPlugins/raw/main/pluginmaster.json
-    -> Lifestream :  (for changing Instances [ChangeInstance][Exchange]) https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json
+        -> Veyns BossMod: https://puni.sh/api/repository/veyn
+    -> TextAdvance: (FATE開始NPCへの話しかけ用) https://github.com/NightmareXIV/MyDalamudPlugins/raw/main/pluginmaster.json
+    -> Lifestream :  (テレポやインスタンス変更用) https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json
 
 ********************************************************************************
-*                                Optional Plugins                              *
+*                               オプションプラグイン                             *
 ********************************************************************************
 
-設定により必要になるプラグイン:
+これらのプラグインはオプションの為、設定で有効化していない場合は必要ありません。:
 
-    -> AutoRetainer : (for Retainers [Retainers])   https://love.puni.sh/ment.json
-    -> Deliveroo : (for gc turn ins [TurnIn])   https://plugins.carvel.li/
-    -> YesAlready : (for extracting materia)
+    -> AutoRetainer : (リテイナーベンチャー用)   https://love.puni.sh/ment.json
+    -> Deliveroo : (GC納品用)   https://plugins.carvel.li/
+    -> YesAlready : (マテリア精製用)
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------
 ]]
+
 
 --[[
 ********************************************************************************
-* Code: これより下は絶対に触らないでください（何をしているのか理解している場合を除く) *
+*                  コード：内容を理解していない場合は触らないこと                  *
 ********************************************************************************
 ]]
 
 import("System.Numerics")
 
---#region Data
+--#データセクションここから
 
 CharacterCondition = {
     dead=2,
@@ -408,25 +477,25 @@ BicolorExchangeData =
         position=Vector3(78, 5, -37),
         shopItems =
         {
-            { itemName = "Bicolor Gemstone Voucher", itemIndex = 8, price = 100 },
-            { itemName = "Ovibos Milk", itemIndex = 9, price = 2 },
-            { itemName = "Hamsa Tenderloin", itemIndex = 10, price = 2 },
-            { itemName = "Yakow Chuck", itemIndex = 11, price = 2 },
-            { itemName = "Bird of Elpis Breast", itemIndex = 12, price = 2 },
-            { itemName = "Egg of Elpis", itemIndex = 13, price = 2 },
-            { itemName = "Amra", itemIndex = 14, price = 2 },
-            { itemName = "Dynamis Crystal", itemIndex = 15, price = 2 },
-            { itemName = "Almasty Fur", itemIndex = 16, price = 2 },
-            { itemName = "Gaja Hide", itemIndex = 17, price = 2 },
-            { itemName = "Luncheon Toad Skin", itemIndex = 18, price = 2 },
-            { itemName = "Saiga Hide", itemIndex = 19, price = 2 },
-            { itemName = "Kumbhira Skin", itemIndex = 20, price = 2 },
-            { itemName = "Ophiotauros Hide", itemIndex = 21, price = 2 },
-            { itemName = "Berkanan Sap", itemIndex = 22, price = 2 },
-            { itemName = "Dynamite Ash", itemIndex = 23, price = 2 },
-            { itemName = "Lunatender Blossom", itemIndex = 24, price = 2 },
-            { itemName = "Mousse Flesh", itemIndex = 25, price = 2 },
-            { itemName = "Petalouda Scales", itemIndex = 26, price = 2 },
+            { itemName = "バイカラージェム納品証", itemIndex = 8, price = 100 },
+            { itemName = "オウヴィボスの乳", itemIndex = 9, price = 2 },
+            { itemName = "ハンサの笹身", itemIndex = 10, price = 2 },
+            { itemName = "ヤーコウの肩肉", itemIndex = 11, price = 2 },
+            { itemName = "ブレスト・オブ・エルピス", itemIndex = 12, price = 2 },
+            { itemName = "エッグ・オブ・エルピス", itemIndex = 13, price = 2 },
+            { itemName = "アームラ", itemIndex = 14, price = 2 },
+            { itemName = "デュナミスシャード", itemIndex = 15, price = 2 },
+            { itemName = "アルマスティの毛", itemIndex = 16, price = 2 },
+            { itemName = "ガジャの粗皮", itemIndex = 17, price = 2 },
+            { itemName = "マウンテンチキンの粗皮", itemIndex = 18, price = 2 },
+            { itemName = "サイガの粗皮", itemIndex = 19, price = 2 },
+            { itemName = "クンビーラの粗皮", itemIndex = 20, price = 2 },
+            { itemName = "オピオタウロスの粗皮", itemIndex = 21, price = 2 },
+            { itemName = "ベルカナの樹液", itemIndex = 22, price = 2 },
+            { itemName = "ダイナマイトの灰", itemIndex = 23, price = 2 },
+            { itemName = "ルナテンダーの花", itemIndex = 24, price = 2 },
+            { itemName = "ムースの肉", itemIndex = 25, price = 2 },
+            { itemName = "ペタルダの鱗粉", itemIndex = 26, price = 2 },
         }
     },
     {
@@ -441,24 +510,24 @@ BicolorExchangeData =
         },
         shopItems =
         {
-            { itemName = "Turali Bicolor Gemstone Voucher", itemIndex = 6, price = 100 },
-            { itemName = "Alpaca Fillet", itemIndex = 7, price = 3 },
-            { itemName = "Swampmonk Thigh", itemIndex = 8, price = 3 },
-            { itemName = "Rroneek Chuck", itemIndex = 9, price = 3 },
-            { itemName = "Megamaguey Pineapple", itemIndex = 10, price = 3 },
-            { itemName = "Branchbearer Fruit", itemIndex = 11, price = 3 },
-            { itemName = "Nopalitender Tuna", itemIndex = 12, price = 3 },
-            { itemName = "Rroneek Fleece", itemIndex = 13, price = 3 },
-            { itemName = "Silver Lobo Hide", itemIndex = 14, price = 3 },
-            { itemName = "Hammerhead Crocodile Skin", itemIndex = 15, price = 3 },
-            { itemName = "Br'aax Hide", itemIndex = 16, price = 3 },
-            { itemName = "Gomphotherium Skin", itemIndex = 17, price = 3 },
-            { itemName = "Gargantua Hide", itemIndex = 18, price = 3 },
-            { itemName = "Ty'aitya Wingblade", itemIndex = 19, price = 3 },
-            { itemName = "Poison Frog Secretions", itemIndex = 20, price = 3 },
-            { itemName = "Alexandrian Axe Beak Wing", itemIndex = 21, price = 3 },
-            { itemName = "Lesser Apollyon Shell", itemIndex = 22, price = 3 },
-            { itemName = "Tumbleclaw Weeds", itemIndex = 23, price = 3 },
+            { itemName = "バイカラージェム納品証【黄金】", itemIndex = 6, price = 100 },
+            { itemName = "アルパカのフィレ肉", itemIndex = 7, price = 3 },
+            { itemName = "スワンプモンクのモモ肉", itemIndex = 8, price = 3 },
+            { itemName = "ロネークの肩肉", itemIndex = 9, price = 3 },
+            { itemName = "メガマゲイの球茎", itemIndex = 10, price = 3 },
+            { itemName = "ブランチベアラーの果実", itemIndex = 11, price = 3 },
+            { itemName = "ノパルテンダーのトゥナ", itemIndex = 12, price = 3 },
+            { itemName = "ロネークの獣毛", itemIndex = 13, price = 3 },
+            { itemName = "シルバリオの粗皮", itemIndex = 14, price = 3 },
+            { itemName = "ハンマーヘッドダイルの粗皮", itemIndex = 15, price = 3 },
+            { itemName = "ブラーシャの粗皮", itemIndex = 16, price = 3 },
+            { itemName = "ゴンフォテリウムの粗皮", itemIndex = 17, price = 3 },
+            { itemName = "ガルガンチュアの粗皮", itemIndex = 18, price = 3 },
+            { itemName = "チャイチャの刃爪", itemIndex = 19, price = 3 },
+            { itemName = "ポイズンフロッグの粘液", itemIndex = 20, price = 3 },
+            { itemName = "アックスビークの翼膜", itemIndex = 21, price = 3 },
+            { itemName = "レッサーアポリオンの甲殻", itemIndex = 22, price = 3 },
+            { itemName = "タンブルクラブの枯草", itemIndex = 23, price = 3 },
         }
     }
 }
@@ -549,7 +618,7 @@ FatesData = {
             otherNpcFates= {},
             fatesWithContinuations = {},
             specialFates = {
-                "手負いの魔獣「ベヒーモス」" --behemoth
+                "手負いの魔獣「ベヒーモス」" --ベヒーモス
             },
             blacklistedFates= {}
         }
@@ -602,7 +671,7 @@ FatesData = {
             otherNpcFates= {},
             fatesWithContinuations = {},
             specialFates = {
-                "幻影の女王「クァールレギナ」" --coeurlregina
+                "幻影の女王「クァールレギナ」" --クァールレギナ
             },
             blacklistedFates= {}
         }
@@ -661,8 +730,8 @@ FatesData = {
             },
             fatesWithContinuations = {},
             blacklistedFates= {
-                "暴走最終兵器「リーサルウェポン」", --エスコート
-                "完全菜食主義" --エスコート
+                "暴走最終兵器「リーサルウェポン」", --ゴールに向かって移動するボスFATE
+                "完全菜食主義" --護衛FATE
             }
         }
     },
@@ -1006,10 +1075,10 @@ FatesData = {
                 { fateName="トクローネ：狩猟の下準備", npcName="赤日のブルクバー" }
             },
             otherNpcFates= {
-                { fateName="死せる悪漢「デッドマン・ダーテカ」", npcName="トナワータ族の労働者" }, --22 boss
-                { fateName="ロネークと人の大地", npcName="ヘイザ・アロ族の女性" }, --23 normal
-                { fateName="嘆きの猛進「ウィデキ」", npcName="ヘイザ・アロ族の男性" }, --22 boss
-                { fateName="リバー・ランズ・スルー・イット", npcName="ヘイザ・アロ族の釣人" }, --24 tower defense
+                { fateName="死せる悪漢「デッドマン・ダーテカ」", npcName="トナワータ族の労働者" }, --22 ボスFATE
+                { fateName="ロネークと人の大地", npcName="ヘイザ・アロ族の女性" }, --23 通常の雑魚FATE
+                { fateName="嘆きの猛進「ウィデキ」", npcName="ヘイザ・アロ族の男性" }, --22 ボスFATE
+                { fateName="リバー・ランズ・スルー・イット", npcName="ヘイザ・アロ族の釣人" }, --24 防衛FATE
                 { fateName="トクローネ：狩猟の秘策", npcName="赤日のブルクバー" },
                 { fateName="恐竜怪鳥の伝説", npcName="ペルペル族の行商人" },
             },
@@ -1017,7 +1086,7 @@ FatesData = {
                 "トクローネ：狩猟の下準備"
             },
             specialFates = {
-                "トクローネ：荒野の死闘" -- big snake fate
+                "トクローネ：荒野の死闘" -- トクローネ
             },
             blacklistedFates= {}
         }
@@ -1069,14 +1138,15 @@ FatesData = {
                 "マイカ・ザ・ムー：大団円"
             },
             blacklistedFates= {
+                "カナルタウンでやすらかに", --スクリプトがクラッシュする
             }
         }
     }
 }
 
---#endregion Data
+--#データセクションここまで
 
---#region Utils
+--#ユーティリティセクションここから
 function mysplit(inputstr)
   for str in string.gmatch(inputstr, "[^%.]+") do
     return str
@@ -1134,28 +1204,28 @@ function AttemptToTargetClosestFateEnemy()
     end
 end
 
--- Calculates a point on the line from 'start' to 'end',
--- stopping 'd' units before reaching 'end'
+-- 'start'から'end'までの線上の地点を計算する
+-- 'end'よりも'd'ユニット(タゲサ)分手前で停止する
 function MoveToTargetHitbox()
     if Svc.Targets.Target == nil then
         return
     end
 
-    -- Vector from start to end
+    -- start から end への方向ベクトルを計算するための距離
     local distance = GetDistanceToTarget()
 
-    -- Distance between start and end
+    -- startとendの間の距離を確認
     if distance == 0 then
         return
     end
 
-    -- Scale direction vector to (distance - d)
+    -- -- 方向ベクトルの長さを (distance - d) に調整
     local newDistance = distance - GetTargetHitboxRadius()
     if newDistance <= 0 then
         return
     end
 
-    -- Calculate normalized direction vector
+    -- -- 正規化された方向ベクトルを計算
     local norm = (Svc.Targets.Target.Position - Svc.ClientState.LocalPlayer.Position) / distance
     local edgeOfHitbox = (norm*newDistance) + Svc.ClientState.LocalPlayer.Position
     local newPos = nil
@@ -1164,20 +1234,21 @@ function MoveToTargetHitbox()
         newPos = IPC.vnavmesh.PointOnFloor(edgeOfHitbox, false, halfExt)
         halfExt = halfExt + 10
     end
-    yield("/vnav moveto "..newPos.X.." "..newPos.Y.." "..newPos.Z)
+    Engines.Run("/vnav moveto "..newPos.X.." "..newPos.Y.." "..newPos.Z)
 end
 
 function HasPlugin(name)
     for plugin in luanet.each(Svc.PluginInterface.InstalledPlugins) do
-        if plugin.InternalName == name then
+        if plugin.InternalName == name and plugin.IsLoaded then
             return true
         end
     end
     return false
 end
---#endregion Utils
 
---#region Fate Functions
+--#ユーティリティセクションここまで
+
+--#FATEセクションここから
 function IsCollectionsFate(fateName)
     for i, collectionsFate in ipairs(SelectedZone.fatesList.collectionsFates) do
         if collectionsFate.fateName == fateName then
@@ -1268,7 +1339,7 @@ function SelectNextZone()
         end
     end
     if nextZone == nil then
-        yield("/echo [FATE] Current zone is only partially supported. No data on npc fates.")
+        Engines.Run("/echo  [FATE] Current zone is only partially supported. No data on npc fates.")
         nextZone = {
             zoneName = "",
             zoneId = nextZoneId,
@@ -1344,8 +1415,8 @@ function BuildFateTable(fateObj)
 end
 
 --[[
-    Selects the better fate based on the priority order defined in FatePriority.
-    Default Priority order is "DistanceTeleport" -> "Progress" -> "Bonus" -> "TimeLeft" -> "Distance"
+    FatePriorityで定義された優先順位に基づいて、より最適なFATEを選択する。
+    デフォルトの優先順位は "DistanceTeleport"(テレポからの距離) -> "Progress"(FATE進行度が高い) -> "Bonus"(ボーナス有) -> "TimeLeft"(残り時間が短い) -> "Distance"(距離)
 ]]
 function SelectNextFateHelper(tempFate, nextFate)
     if nextFate == nil then
@@ -1353,7 +1424,8 @@ function SelectNextFateHelper(tempFate, nextFate)
         return tempFate
     elseif BonusFatesOnly then
         Dalamud.Log("[FATE] only doing bonus fates")
-        --Check if WaitForBonusIfBonusBuff is true, and have eithe buff, then set BonusFatesOnlyTemp to true
+        -- WaitForBonusIfBonusBuff が true で、いずれかのボーナスバフを持っている場合は BonusFatesOnlyTemp を true に設定
+        -- WaitForBonusIfBonusBuffは恐らくコメント内の変数の変更忘れでshouldWaitForBonusBuffのこと
         if not tempFate.isBonusFate and nextFate ~= nil and nextFate.isBonusFate then
             return nextFate
         elseif tempFate.isBonusFate and (nextFate == nil or not nextFate.isBonusFate) then
@@ -1361,7 +1433,7 @@ function SelectNextFateHelper(tempFate, nextFate)
         elseif not tempFate.isBonusFate and (nextFate == nil or not nextFate.isBonusFate) then
             return nil
         end
-        -- if both are bonus fates, go through the regular fate selection process
+        -- ボーナスFATEが複数同時に存在する場合は通常の優先順位に従ってFATEを選択する
     end
 
     if tempFate.timeLeft < MinTimeLeftToIgnoreFate or tempFate.fateObject.Progress > CompletionToIgnoreFate then
@@ -1375,7 +1447,7 @@ function SelectNextFateHelper(tempFate, nextFate)
         return tempFate
     end
 
-    -- Evaluate based on priority (Loop through list return first non-equal priority)
+    -- 優先順位に基づいて評価する(順にリストを確認し、最初に優先度が異なるFATEを選択する)
     for _, criteria in ipairs(FatePriority) do
         if criteria == "Progress" then
             Dalamud.Log("[FATE] Comparing progress: "..tempFate.fateObject.Progress.." vs "..nextFate.fateObject.Progress)
@@ -1404,12 +1476,12 @@ function SelectNextFateHelper(tempFate, nextFate)
         end
     end
 
-    -- Fallback: Select fate with the lower ID
+    -- 予備の手段: すべての優先順位を用いても向かうべきFATEを決められない場合はIDが小さいFATEを選択する
     Dalamud.Log("[FATE] Selecting lower ID fate: "..tempFate.fateId.." vs "..nextFate.fateId)
     return (tempFate.fateId < nextFate.fateId) and tempFate or nextFate
 end
 
---Gets the Location of the next Fate. Prioritizes anything with progress above 0, then by shortest time left
+-- 次に向かうFATEを取得。優先順は 進行度が0以上 > 残り時間が少ない
 function SelectNextFate()
     local fates = Fates.GetActiveFates()
     if fates == nil then
@@ -1423,8 +1495,8 @@ function SelectNextFate()
         Dalamud.Log("[FATE] Considering fate #"..tempFate.fateId.." "..tempFate.fateName)
         Dalamud.Log("[FATE] Time left on fate #:"..tempFate.fateId..": "..math.floor(tempFate.timeLeft//60).."min, "..math.floor(tempFate.timeLeft%60).."s")
 
-        if not (tempFate.position.X == 0 and tempFate.position.Z == 0) then -- sometimes game doesn't send the correct coords
-            if not tempFate.isBlacklistedFate then -- check fate is not blacklisted for any reason
+        if not (tempFate.position.X == 0 and tempFate.position.Z == 0) then -- ゲームクライアントが正しい座標を送らない場合がある
+            if not tempFate.isBlacklistedFate then -- 何らかの理由でFATEがブラックリストに追加されていないか確認
                 if tempFate.isBossFate then
                     Dalamud.Log("[FATE] Is a boss fate")
                     if (tempFate.isSpecialFate and tempFate.fateObject.Progress >= CompletionToJoinSpecialBossFates) or
@@ -1435,19 +1507,19 @@ function SelectNextFate()
                     end
                 elseif (tempFate.isOtherNpcFate or tempFate.isCollectionsFate) and tempFate.startTime == 0 then
                     Dalamud.Log("[FATE] Is not an npc or collections fate")
-                    if nextFate == nil then -- pick this if there's nothing else
+                    if nextFate == nil then -- 他に選択肢がない場合はこれを選択
                         Dalamud.Log("[FATE] Selecting this fate because there's nothing else so far")
                         nextFate = tempFate
                     elseif tempFate.isBonusFate then
                         Dalamud.Log("[FATE] tempFate.isBonusFate")
                         nextFate = SelectNextFateHelper(tempFate, nextFate)
-                    elseif nextFate.startTime == 0 then -- both fates are unopened npc fates
+                    elseif nextFate.startTime == 0 then -- NPC/収集FATEがいずれもまだ開始されていない場合
                         Dalamud.Log("[FATE] Both fates are unopened npc fates")
                         nextFate = SelectNextFateHelper(tempFate, nextFate)
                     else
                         Dalamud.Log("[FATE] else")
                     end
-                elseif tempFate.duration ~= 0 then -- else is normal fate. avoid unlisted talk to npc fates
+                elseif tempFate.duration ~= 0 then -- その他は通常のFATE。NPC会話から開始するFATEのうちリストにないものは避ける。
                     Dalamud.Log("[FATE] Normal fate")
                     nextFate = SelectNextFateHelper(tempFate, nextFate)
                 else
@@ -1464,17 +1536,15 @@ function SelectNextFate()
     end
 
     Dalamud.Log("[FATE] Finished considering all fates")
-
     if nextFate == nil then
         Dalamud.Log("[FATE] No eligible fates found.")
-        if Echo == "All" then
-            yield("/echo [FATE] 条件に合うFATEが見つかりません。待機します。")
+        if Echo == "all" then
+            Engines.Run("/echo  [FATE] No eligible fates found.")
         end
     else
         Dalamud.Log("[FATE] Final selected fate #"..nextFate.fateId.." "..nextFate.fateName)
     end
     yield("/wait 0.211")
-
     return nextFate
 end
 
@@ -1482,16 +1552,16 @@ function AcceptNPCFateOrRejectOtherYesno()
     if Addons.GetAddon("SelectYesno").Ready then
         local dialogBox = GetNodeText("SelectYesno", 1, 2)
         if type(dialogBox) == "string" and dialogBox:find("The recommended level for this FATE is") then
-            yield("/callback SelectYesno true 0") --accept fate
+            Engines.Run("/callback SelectYesno true 0") --FATE受注
         else
-            yield("/callback SelectYesno true 1") --decline all other boxes
+            Engines.Run("/callback SelectYesno true 1") --その他のYes/Noはすべて拒否
         end
     end
 end
 
---#endregion Fate Functions
+--#FATEセクションここまで
 
---#region Movement Functions
+--#移動セクションここから
 
 function DistanceBetween(pos1, pos2)
     return Vector3.Distance(pos1, pos2)
@@ -1508,7 +1578,6 @@ function GetDistanceToTarget()
         return math.maxinteger
     end
 end
-
 
 function GetDistanceToTargetFlat()
     if Svc.Targets.Target ~= nil then
@@ -1527,7 +1596,6 @@ function DistanceBetweenFlat(pos1, pos2)
     local flat2 = Vector3(pos2.X, 0, pos2.Z)
     return Vector3.Distance(flat1, flat2)
 end
-
 
 function RandomAdjustCoordinates(position, maxDistance)
     local angle = math.random() * 2 * math.pi
@@ -1579,15 +1647,15 @@ function DistanceFromClosestAetheryteToPoint(vec3, teleportTimePenalty)
 end
 
 function GetDistanceToPointWithAetheryteTravel(vec3)
-    -- Get the direct flight distance (no aetheryte)
+    -- 自走した場合の距離を取得 (テレポなし)
     local directFlightDistance = GetDistanceToPoint(vec3)
     Dalamud.Log("[FATE] Direct flight distance is: " .. directFlightDistance)
 
-    -- Get the distance to the closest aetheryte, including teleportation penalty
+    -- 最寄りのエーテライトまでの距離を取得 (テレポの詠唱時間、ロード時間などのペナルティを含む)
     local distanceToAetheryte = DistanceFromClosestAetheryteToPoint(vec3, 200)
     Dalamud.Log("[FATE] Distance via closest Aetheryte is: " .. (distanceToAetheryte or "nil"))
 
-    -- Return the minimum distance, either via direct flight or via the closest aetheryte travel
+    -- テレポせず自走した場合の距離と、最寄りのエーテライトを利用した場合の距離のうち、小さい方を返す
     if distanceToAetheryte == nil then
         return directFlightDistance
     else
@@ -1645,23 +1713,23 @@ end
 function AcceptTeleportOfferLocation(destinationAetheryte)
     if Addons.GetAddon("_NotificationTelepo").Ready then
         local location = GetNodeText("_NotificationTelepo", 3, 4)
-        yield("/callback _Notification true 0 16 "..location)
+        Engines.Run("/callback _Notification true 0 16 "..location)
         yield("/wait 1")
     end
 
     if Addons.GetAddon("SelectYesno").Ready then
         local teleportOfferMessage = GetNodeText("SelectYesno", 1, 2)
         if type(teleportOfferMessage) == "string" then
-            local teleportOfferLocation = teleportOfferMessage:match("Accept Teleport to (.+)%?")
+            local teleportOfferLocation = teleportOfferMessage:match("へのテレポ勧誘を受けますか？")
             if teleportOfferLocation ~= nil then
                 if string.lower(teleportOfferLocation) == string.lower(destinationAetheryte) then
-                    yield("/callback SelectYesno true 0") -- accept teleport
+                    Engines.Run("/callback SelectYesno true 0") -- テレポ勧誘受諾 (テレポ先が正しい場合)
                     return
                 else
                     Dalamud.Log("Offer for "..teleportOfferLocation.." and destination "..destinationAetheryte.." are not the same. Declining teleport.")
                 end
             end
-            yield("/callback SelectYesno true 2") -- decline teleport
+            Engines.Run("/callback SelectYesno true 2") -- テレポ勧誘拒否 (テレポ先が正しくない場合)
             return
         end
     end
@@ -1669,25 +1737,40 @@ end
 
 function TeleportTo(aetheryteName)
     AcceptTeleportOfferLocation(aetheryteName)
+    local start = os.clock()
 
     while EorzeaTimeToUnixTime(Instances.Framework.EorzeaTime) - LastTeleportTimeStamp < 5 do
         Dalamud.Log("[FATE] Too soon since last teleport. Waiting...")
         yield("/wait 5.001")
+        if os.clock() - start > 30 then
+            Engines.Run("/echo  [FATE] Teleport failed: Timeout waiting before cast.")
+            return false
+        end
     end
 
-    yield("/li tp "..aetheryteName)
-    yield("/wait 1") -- wait for casting to begin
+    Engines.Run("/li tp "..aetheryteName)
+    yield("/wait 1")
     while Svc.Condition[CharacterCondition.casting] do
         Dalamud.Log("[FATE] Casting teleport...")
         yield("/wait 1")
+        if os.clock() - start > 60 then
+            Engines.Run("/echo  [FATE] Teleport failed: Timeout during cast.")
+            return false
+        end
     end
-    yield("/wait 1") -- wait for that microsecond in between the cast finishing and the transition beginning
+    yield("/wait 1")
     while Svc.Condition[CharacterCondition.betweenAreas] do
         Dalamud.Log("[FATE] Teleporting...")
         yield("/wait 1")
+        if os.clock() - start > 120 then
+            Engines.Run("/echo  [FATE] Teleport failed: Timeout during zone transition.")
+            return false
+        end
     end
     yield("/wait 1")
     LastTeleportTimeStamp = EorzeaTimeToUnixTime(Instances.Framework.EorzeaTime)
+    HasFlownUpYet = false
+    return true
 end
 
 function ChangeInstance()
@@ -1707,13 +1790,13 @@ function ChangeInstance()
         return
     end
 
-    yield("/target エーテライト") -- search for nearby aetheryte
-    if Svc.Targets.Target == nil or GetTargetName() ~= "エーテライト" then -- if no aetheryte within targeting range, teleport to it
+    yield("/target エーテライト") -- 近くのエーテライトを探す
+    if Svc.Targets.Target == nil or GetTargetName() ~= "エーテライト" then -- ターゲット可能な範囲内にエーテライトが存在しない場合はそのエーテライトにテレポする
         Dalamud.Log("[FATE] Aetheryte not within targetable range")
         local closestAetheryte = nil
         local closestAetheryteDistance = math.maxinteger
         for i, aetheryte in ipairs(SelectedZone.aetheryteList) do
-            -- GetDistanceToPoint is implemented with raw distance instead of distance squared
+            -- GetDistanceToPointは二乗の距離ではなく実際の距離で実装されている
             local distanceToAetheryte = GetDistanceToPoint(aetheryte.position)
             if distanceToAetheryte < closestAetheryteDistance then
                 closestAetheryte = aetheryte
@@ -1760,8 +1843,8 @@ function ChangeInstance()
 
     Dalamud.Log("[FATE] Transferring to next instance")
     local nextInstance = (GetZoneInstance() % 2) + 1
-    yield("/li "..nextInstance) -- start instance transfer
-    yield("/wait 1") -- wait for instance transfer to register
+    yield("/li "..nextInstance) -- インスタンスの移動を開始
+    yield("/wait 1") -- インスタンスの移動が反省されるまで待機
     State = CharacterState.ready
     SuccessiveInstanceChanges = SuccessiveInstanceChanges + 1
     Dalamud.Log("[FATE] State Change: Ready")
@@ -1790,10 +1873,10 @@ function WaitForContinuation()
             if not Player.IsPlayerOccupied then
                 if CurrentFate.continuationIsBoss and currentClass ~= BossFatesClass.classId then
                     Dalamud.Log("WaitForContinuation SwitchToBoss")
-                    yield("/gs change "..BossFatesClass.className)
+                    Engines.Run("/gs change "..BossFatesClass.className)
                 elseif not CurrentFate.continuationIsBoss and currentClass ~= MainClass.classId then
                     Dalamud.Log("WaitForContinuation SwitchToMain")
-                    yield("/gs change "..MainClass.className)
+                    Engines.Run("/gs change "..MainClass.className)
                 end
             end
         end
@@ -1805,7 +1888,7 @@ end
 function FlyBackToAetheryte()
     NextFate = SelectNextFate()
     if NextFate ~= nil then
-        yield("/vnav stop")
+        Engines.Run("/vnav stop")
         State = CharacterState.ready
         Dalamud.Log("[FATE] State Change: Ready")
         return
@@ -1814,33 +1897,33 @@ function FlyBackToAetheryte()
     local closestAetheryte = GetClosestAetheryte(Svc.ClientState.LocalPlayer.Position, 0)
     if closestAetheryte == nil then
         DownTimeWaitAtNearestAetheryte = false
-        yield("/echo Could not find aetheryte in the area. Turning off feature to fly back to aetheryte.")
+        Engines.Run("/echo  Could not find aetheryte in the area. Turning off feature to fly back to aetheryte.")
         return
     end
-    -- if you get any sort of error while flying back, then just abort and tp back
-    if Addons.GetAddon("_TextError").Ready and GetNodeText("_TextError", 1) == "Your mount can fly no higher." then
-        yield("/vnav stop")
+    -- 最寄りのエーテライトへ飛行中にエラーが発生した場合は、飛行を中断してテレポで移動する
+    if Addons.GetAddon("_TextError").Ready and GetNodeText("_TextError", 1) == "高度上限付近です。これ以上の上昇はできません。" then
+        Engines.Run("/vnav stop")
         TeleportTo(closestAetheryte.aetheryteName)
         return
     end
 
-    yield("/target エーテライト")
+    Engines.Run("/target エーテライト")
 
     if Svc.Targets.Target ~= nil and GetTargetName() == "エーテライト" and GetDistanceToTarget() <= 20 then
         if IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning() then
-            yield("/vnav stop")
+            Engines.Run("/vnav stop")
         end
 
         if Svc.Condition[CharacterCondition.flying] then
-            yield("/ac 降りる") -- land but don't actually dismount, to avoid running chocobo timer
+            Engines.Run("/ac 降りる") -- バディチョコボのタイマーを停止させるため、着地はするがマウントからは降りない
         elseif Svc.Condition[CharacterCondition.mounted] then
             State = CharacterState.ready
             Dalamud.Log("[FATE] State Change: Ready")
         else
-            if MountToUse == "mount roulette" then
-                yield('/gaction "マウント・ルーレット"')
+            if MountToUse == "マウント・ルーレット" then
+                Engines.Run('/gaction "マウント・ルーレット"')
             else
-                yield('/mount "' .. MountToUse)
+                Engines.Run('/mount "' .. MountToUse)
             end
         end
         return
@@ -1860,18 +1943,42 @@ function FlyBackToAetheryte()
     end
 end
 
-function Mount()
-    if MountToUse == "mount roulette" then
-        yield('/gaction "マウント・ルーレット"')
+HasFlownUpYet = false
+function MoveToRandomNearbySpot(minDist, maxDist)
+    local playerPos = Svc.ClientState.LocalPlayer.Position
+    local angle = math.random() * 2 * math.pi
+    local distance = minDist + math.random() * (maxDist - minDist)
+    local dx = math.cos(angle) * distance
+    local dz = math.sin(angle) * distance
+    local yOffset = 0
+    if not HasFlownUpYet then
+        -- スクリプト開始後の初回飛行時は大きく上昇する
+        yOffset = 25 + math.random() * 15  -- +25m から +40m
+        HasFlownUpYet = true
     else
-        yield('/mount "' .. MountToUse)
+        yOffset = (math.random() * 30) - 15  -- -15m to +15m
+    end
+    local targetPos = Vector3(playerPos.X + dx, playerPos.Y + yOffset, playerPos.Z + dz)
+    if not Svc.Condition[CharacterCondition.mounted] then
+        Mount()
+        yield("/wait 2")
+    end
+    IPC.vnavmesh.PathfindAndMoveTo(targetPos, true)
+    Engines.Run("/echo  [FATE] Moving to a random location while waiting...") -- FATE出現待機中。ランダムな場所へ移動しています。
+end
+
+function Mount()
+    if MountToUse == "マウント・ルーレット" then
+        Engines.Run('/gaction "マウント・ルーレット"')
+    else
+        Engines.Run('/mount "' .. MountToUse)
     end
     yield("/wait 1")
 end
 
 function MountState()
     if Svc.Condition[CharacterCondition.mounted] then
-        yield("/wait 1") -- wait a second to make sure you're firmly on the mount
+        yield("/wait 1") -- 確実にマウントに騎乗するために1秒待機する
         State = CharacterState.moveToFate
         Dalamud.Log("[FATE] State Change: MoveToFate")
     else
@@ -1881,7 +1988,7 @@ end
 
 function Dismount()
     if Svc.Condition[CharacterCondition.flying] then
-        yield('/ac 降りる')
+        Engines.Run('/ac 降りる')
 
         local now = os.clock()
         if now - LastStuckCheckTime > 1 then
@@ -1900,7 +2007,7 @@ function Dismount()
             LastStuckCheckPosition = Svc.ClientState.LocalPlayer.Position
         end
     elseif Svc.Condition[CharacterCondition.mounted] then
-        yield('/ac 降りる')
+        Engines.Run('/ac 降りる')
     end
 end
 
@@ -1916,9 +2023,9 @@ function MiddleOfFateDismount()
             if not (IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning()) then
                 Dalamud.Log("[FATE] MiddleOfFateDismount IPC.vnavmesh.PathfindAndMoveTo")
                 if Svc.Condition[CharacterCondition.flying] then
-                    yield("/vnav flytarget")
+                    Engines.Run("/vnav flytarget")
                 else
-                    yield("/vnav movetarget")
+                    Engines.Run("/vnav movetarget")
                 end
             end
         else
@@ -1926,7 +2033,7 @@ function MiddleOfFateDismount()
                 Dalamud.Log("[FATE] MiddleOfFateDismount Dismount()")
                 Dismount()
             else
-                yield("/vnav stop")
+                Engines.Run("/vnav stop")
                 State = CharacterState.doFate
                 Dalamud.Log("[FATE] State Change: DoFate")
             end
@@ -1954,18 +2061,18 @@ function ChangeInstanceDismount()
     end
 end
 
---Paths to the Fate NPC Starter
+--FATE開始NPCへのルート選択
 function MoveToNPC()
-    yield("/target "..CurrentFate.npcName)
+    Engines.Run("/target "..CurrentFate.npcName)
     if Svc.Targets.Target ~= nil and GetTargetName()==CurrentFate.npcName then
         if GetDistanceToTarget() > 5 then
-            yield("/vnav movetarget")
+            Engines.Run("/vnav movetarget")
         end
     end
 end
 
---Paths to the Fate. CurrentFate is set here to allow MovetoFate to change its mind,
---so CurrentFate is possibly nil.
+--FATEへのルート選択。CurrentFateはMovetoFateが判断を変更できるようにここで設定される
+--そのためCurrentFateはnilになる可能性がある
 function MoveToFate()
     SuccessiveInstanceChanges = 0
 
@@ -1975,38 +2082,40 @@ function MoveToFate()
 
     if CurrentFate~=nil and not IsFateActive(CurrentFate.fateObject) then
         Dalamud.Log("[FATE] Next Fate is dead, selecting new Fate.")
-        yield("/vnav stop")
+        Engines.Run("/vnav stop")
+        MovingAnnouncementLock = false
         State = CharacterState.ready
         Dalamud.Log("[FATE] State Change: Ready")
         return
     end
 
     NextFate = SelectNextFate()
-    if NextFate == nil then -- when moving to next fate, CurrentFate == NextFate
-        yield("/vnav stop")
+    if NextFate == nil then -- 次のFATEへの移動中は CurrentFate == NextFate
+        Engines.Run("/vnav stop")
+        MovingAnnouncementLock = false
         State = CharacterState.ready
         Dalamud.Log("[FATE] State Change: Ready")
         return
     elseif CurrentFate == nil or NextFate.fateId ~= CurrentFate.fateId then
-        yield("/vnav stop")
+        Engines.Run("/vnav stop")
         CurrentFate = NextFate
         SetMapFlag(SelectedZone.zoneId, CurrentFate.position)
         return
     end
 
-    -- change to secondary class if it's a boss fate
+    -- ボスFATEでは設定したジョブに切り替える
     if BossFatesClass ~= nil then
         local currentClass = Player.Job.Id
         if CurrentFate.isBossFate and currentClass ~= BossFatesClass.classId then
-            yield("/gs change "..BossFatesClass.className)
+            Engines.Run("/gs change "..BossFatesClass.className)
             return
         elseif not CurrentFate.isBossFate and currentClass ~= MainClass.classId then
-            yield("/gs change "..MainClass.className)
+            Engines.Run("/gs change "..MainClass.className)
             return
         end
     end
 
-    -- upon approaching fate, pick a target and switch to pathing towards target
+    -- FATEに近づくとターゲットを選択し、ターゲットへのルート選択に切り替える
     if GetDistanceToPoint(CurrentFate.position) < 60 then
         if Svc.Targets.Target ~= nil then
             Dalamud.Log("[FATE] Found FATE target, immediate rerouting")
@@ -2027,26 +2136,26 @@ function MoveToFate()
             return
         else
             if (CurrentFate.isOtherNpcFate or CurrentFate.isCollectionsFate) and not InActiveFate() then
-                yield("/target "..CurrentFate.npcName)
+                Engines.Run("/target "..CurrentFate.npcName)
             else
                 AttemptToTargetClosestFateEnemy()
             end
-            yield("/wait 0.5") -- give it a moment to make sure the target sticks
+            yield("/wait 0.5") -- "/target"コマンド送信後、ゲーム内でターゲットが確定するまで0.5秒待機する
             return
         end
     end
 
-    -- check for stuck
+    -- スタックをチェック
     if (IPC.vnavmesh.IsRunning() or IPC.vnavmesh.PathfindInProgress()) and Svc.Condition[CharacterCondition.mounted] then
         local now = os.clock()
         if now - LastStuckCheckTime > 10 then
 
             if GetDistanceToPoint(LastStuckCheckPosition) < 3 then
-                yield("/vnav stop")
+                Engines.Run("/vnav stop")
                 yield("/wait 1")
                 Dalamud.Log("[FATE] Antistuck")
                 local up10 = Svc.ClientState.LocalPlayer.Position + Vector3(0, 10, 0)
-                IPC.vnavmesh.PathfindAndMoveTo(up10, Svc.Condition[CharacterCondition.flying] and SelectedZone.flying) -- fly up 10 then try again
+                IPC.vnavmesh.PathfindAndMoveTo(up10, Svc.Condition[CharacterCondition.flying] and SelectedZone.flying) -- 10m程度上昇してから再度トライします。
             end
             
             LastStuckCheckTime = now
@@ -2058,8 +2167,8 @@ function MoveToFate()
     if not MovingAnnouncementLock then
         Dalamud.Log("[FATE] Moving to fate #"..CurrentFate.fateId.." "..CurrentFate.fateName)
         MovingAnnouncementLock = true
-        if Echo == "All" then
-            yield("/echo [FATE] Moving to fate #"..CurrentFate.fateId.." "..CurrentFate.fateName)
+        if Echo == "all" then
+            Engines.Run("/echo  [FATE] Moving to fate #"..CurrentFate.fateId.." "..CurrentFate.fateName)
         end
     end
 
@@ -2080,9 +2189,9 @@ function MoveToFate()
             return
         elseif not IPC.vnavmesh.PathfindInProgress() and not IPC.vnavmesh.IsRunning() then
             if Player.CanFly and SelectedZone.flying then
-                yield("/vnav flyflag")
+                Engines.Run("/vnav flyflag")
             else
-                yield("/vnav moveflag")
+                Engines.Run("/vnav moveflag")
             end
         end
     else
@@ -2092,22 +2201,22 @@ end
 
 function InteractWithFateNpc()
     if InActiveFate() or CurrentFate.startTime > 0 then
-        yield("/vnav stop")
+        Engines.Run("/vnav stop")
         State = CharacterState.doFate
         Dalamud.Log("[FATE] State Change: DoFate")
-        yield("/wait 1") -- give the fate a second to register before dofate and lsync
+        yield("/wait 1") -- dofateやlsyncの前にFATE参加が正しく反映されるよう1秒待機する
     elseif not IsFateActive(CurrentFate.fateObject) then
         State = CharacterState.ready
         Dalamud.Log("[FATE] State Change: Ready")
     elseif IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning() then
         if Svc.Targets.Target ~= nil and GetTargetName() == CurrentFate.npcName and GetDistanceToTarget() < (5*math.random()) then
-            yield("/vnav stop")
+            Engines.Run("/vnav stop")
         end
         return
     else
-        -- if target is already selected earlier during pathing, avoids having to target and move again
+        -- 移動中にターゲットが既に選択されている場合は再ターゲットおよび再移動を避ける
         if (Svc.Targets.Target == nil or GetTargetName()~=CurrentFate.npcName) then
-            yield("/target "..CurrentFate.npcName)
+            Engines.Run("/target "..CurrentFate.npcName)
             return
         end
 
@@ -2125,7 +2234,7 @@ function InteractWithFateNpc()
         if Addons.GetAddon("SelectYesno").Ready then
             AcceptNPCFateOrRejectOtherYesno()
         elseif not Svc.Condition[CharacterCondition.occupied] then
-            yield("/interact")
+            Engines.Run("/interact")
         end
     end
 end
@@ -2142,16 +2251,16 @@ function CollectionsFateTurnIn()
 
     if (Svc.Targets.Target == nil or GetTargetName()~=CurrentFate.npcName) then
         TurnOffCombatMods()
-        yield("/target "..CurrentFate.npcName)
+        Engines.Run("/target "..CurrentFate.npcName)
         yield("/wait 1")
 
-        -- if too far from npc to target, then head towards center of fate
+        -- NPCからターゲットまでの距離が遠すぎる場合はFATEの中心へ向かう
         if (Svc.Targets.Target == nil or GetTargetName()~=CurrentFate.npcName and CurrentFate.fateObject.Progress ~= nil and CurrentFate.fateObject.Progress < 100) then
             if not IPC.vnavmesh.PathfindInProgress() and not IPC.vnavmesh.IsRunning() then
                 IPC.vnavmesh.PathfindAndMoveTo(CurrentFate.position, false)
             end
         else
-            yield("/vnav stop")
+            Engines.Run("/vnav stop")
         end
         return
     end
@@ -2165,8 +2274,8 @@ function CollectionsFateTurnIn()
             GotCollectionsFullCredit = true
         end
 
-        yield("/vnav stop")
-        yield("/interact")
+        Engines.Run("/vnav stop")
+        Engines.Run("/interact")
         yield("/wait 3")
 
         if CurrentFate.fateObject.Progress < 100 then
@@ -2175,6 +2284,7 @@ function CollectionsFateTurnIn()
             Dalamud.Log("[FATE] State Change: DoFate")
         else
             if GotCollectionsFullCredit then
+                GotCollectionsFullCredit = false
                 State = CharacterState.unexpectedCombat
                 Dalamud.Log("[FATE] State Change: UnexpectedCombat")
             end
@@ -2186,11 +2296,12 @@ function CollectionsFateTurnIn()
             yield("/wait 1")
         end
     end
+    GotCollectionsFullCredit = false
 end
 
---#endregion
+--#移動セクションここまで
 
---#region Combat Functions
+--#戦闘セクションここから
 
 function GetClassJobTableFromName(classString)
     if classString == nil or classString == "" then
@@ -2216,9 +2327,9 @@ function SummonChocobo()
 
     if ShouldSummonChocobo and GetBuddyTimeRemaining() <= ResummonChocoboTimeLeft then
         if Inventory.GetItemCount(4868) > 0 then
-            yield("/item ギサールの野菜")
+            Engines.Run("/item ギサールの野菜")
             yield("/wait 3")
-            yield('/cac "'..ChocoboStance..'"')
+            Engines.Run('/cac "'..ChocoboStance..'"')
         elseif ShouldAutoBuyGysahlGreens then
             State = CharacterState.autoBuyGysahlGreens
             Dalamud.Log("[FATE] State Change: AutoBuyGysahlGreens")
@@ -2230,11 +2341,11 @@ function SummonChocobo()
 end
 
 function AutoBuyGysahlGreens()
-    if Inventory.GetItemCount(4868) > 0 then -- don't need to buy
+    if Inventory.GetItemCount(4868) > 0 then -- 買う必要なし
         if Addons.GetAddon("Shop").Ready then
-            yield("/callback Shop true -1")
+            Engines.Run("/callback Shop true -1")
         elseif Svc.ClientState.TerritoryType == SelectedZone.zoneId then
-            yield("/item ギサールの野菜")
+            Engines.Run("/item ギサールの野菜")
         else
             State = CharacterState.ready
             Dalamud.Log("State Change: ready")
@@ -2242,7 +2353,7 @@ function AutoBuyGysahlGreens()
         return
     else
         if Svc.ClientState.TerritoryType ~=  129 then
-            yield("/vnav stop")
+            Engines.Run("/vnav stop")
             TeleportTo("リムサ・ロミンサ：下甲板層")
             return
         else
@@ -2252,23 +2363,23 @@ function AutoBuyGysahlGreens()
                     IPC.vnavmesh.PathfindAndMoveTo(gysahlGreensVendor.position, false)
                 end
             elseif Svc.Targets.Target ~= nil and GetTargetName() == gysahlGreensVendor.npcName then
-                yield("/vnav stop")
+                Engines.Run("/vnav stop")
                 if Addons.GetAddon("SelectYesno").Ready then
-                    yield("/callback SelectYesno true 0")
+                    Engines.Run("/callback SelectYesno true 0")
                 elseif Addons.GetAddon("SelectIconString").Ready then
-                    yield("/callback SelectIconString true 0")
+                    Engines.Run("/callback SelectIconString true 0")
                     return
                 elseif Addons.GetAddon("Shop").Ready then
-                    yield("/callback Shop true 0 2 99")
+                    Engines.Run("/callback Shop true 0 5 99")
                     return
                 elseif not Svc.Condition[CharacterCondition.occupied] then
-                    yield("/interact")
+                    Engines.Run("/interact")
                     yield("/wait 1")
                     return
                 end
             else
-                yield("/vnav stop")
-                yield("/target "..gysahlGreensVendor.npcName)
+                Engines.Run("/vnav stop")
+                Engines.Run("/target "..gysahlGreensVendor.npcName)
             end
         end
     end
@@ -2302,16 +2413,16 @@ function TurnOnAoes()
             Dalamud.Log("[FATE] TurnOnAoes /rotation auto on")
 
             if RSRAoeType == "Off" then
-                yield("/rotation settings aoetype 0")
+                Engines.Run("/rotation settings aoetype 0")
             elseif RSRAoeType == "Cleave" then
-                yield("/rotation settings aoetype 1")
+                Engines.Run("/rotation settings aoetype 1")
             elseif RSRAoeType == "Full" then
-                yield("/rotation settings aoetype 2")
+                Engines.Run("/rotation settings aoetype 2")
             end
         elseif RotationPlugin == "BMR" then
-            yield("/bmrai setpresetname "..RotationAoePreset)
+            Engines.Run("/bmrai setpresetname "..RotationAoePreset)
         elseif RotationPlugin == "VBM" then
-            yield("/vbm ar toggle "..RotationAoePreset)
+            Engines.Run("/vbm ar toggle "..RotationAoePreset)
         end
         AoesOn = true
     end
@@ -2320,13 +2431,13 @@ end
 function TurnOffAoes()
     if AoesOn then
         if RotationPlugin == "RSR" then
-            yield("/rotation settings aoetype 1")
-            yield("/rotation manual")
+            Engines.Run("/rotation settings aoetype 1")
+            Engines.Run("/rotation manual")
             Dalamud.Log("[FATE] TurnOffAoes /rotation manual")
         elseif RotationPlugin == "BMR" then
-            yield("/bmrai setpresetname "..RotationSingleTargetPreset)
+            Engines.Run("/bmrai setpresetname "..RotationSingleTargetPreset)
         elseif RotationPlugin == "VBM" then
-            yield("/vbm ar toggle "..RotationSingleTargetPreset)
+            Engines.Run("/vbm ar toggle "..RotationSingleTargetPreset)
         end
         AoesOn = false
     end
@@ -2335,31 +2446,33 @@ end
 function TurnOffRaidBuffs()
     if AoesOn then
         if RotationPlugin == "BMR" then
-            yield("/bmrai setpresetname "..RotationHoldBuffPreset)
+            Engines.Run("/bmrai setpresetname "..RotationHoldBuffPreset)
         elseif RotationPlugin == "VBM" then
-            yield("/vbm ar toggle "..RotationHoldBuffPreset)
+            Engines.Run("/vbm ar toggle "..RotationHoldBuffPreset)
         end
     end
 end
 
 function SetMaxDistance()
-    --ranged and casters have a further max distance so not always running all way up to target
-    if not Player.Job.IsMeleeDPS or not Player.Job.IsTank then
-        MaxDistance = RangedDist
-        Dalamud.Log("[FATE] Setting max distance to "..RangedDist)
+    -- 現在のジョブが近接DPSまたはタンクかを確認
+    if Player.Job and (Player.Job.IsMeleeDPS or Player.Job.IsTank) then
+        MaxDistance = MeleeDist
+        MoveToMob = true
+        Dalamud.Log("[FATE] Setting max distance to " .. tostring(MeleeDist) .. " (melee/tank)")
     else
-        MaxDistance = MeleeDist --default to melee distance
-        Dalamud.Log("[FATE] Setting max distance to "..MeleeDist)
+        MoveToMob = false
+        MaxDistance = RangedDist
+        Dalamud.Log("[FATE] Setting max distance to " .. tostring(RangedDist) .. " (ranged/caster)")
     end
 end
 
 function TurnOnCombatMods(rotationMode)
     if not CombatModsOn then
         CombatModsOn = true
-        -- turn on RSR in case you have the RSR 30 second out of combat timer set
+        -- RSRの非戦闘30秒タイマーが設定されている場合にRSRをオンにする
         if RotationPlugin == "RSR" then
             if rotationMode == "manual" then
-                yield("/rotation manual")
+                Engines.Run("/rotation manual")
                 Dalamud.Log("[FATE] TurnOnCombatMods /rotation manual")
             else
                 yield("/rotation off")
@@ -2367,30 +2480,34 @@ function TurnOnCombatMods(rotationMode)
                 Dalamud.Log("[FATE] TurnOnCombatMods /rotation auto on")
             end
         elseif RotationPlugin == "BMR" then
-            yield("/bmrai setpresetname "..RotationAoePreset)
+            Engines.Run("/bmrai setpresetname "..RotationAoePreset)
         elseif RotationPlugin == "VBM" then
-            yield("/vbm ar toggle "..RotationAoePreset)
+            Engines.Run("/vbm ar toggle "..RotationAoePreset)
         elseif RotationPlugin == "Wrath" then
-            yield("/wrath auto on")
+            Engines.Run("/wrath auto on")
         end
         
         if not AiDodgingOn then
             SetMaxDistance()
             
             if DodgingPlugin == "BMR" then
-                yield("/bmrai on")
-                yield("/bmrai followtarget on") -- overrides navmesh path and runs into walls sometimes
-                yield("/bmrai followcombat on")
-                -- yield("/bmrai followoutofcombat on")
-                yield("/bmrai maxdistancetarget " .. MaxDistance)
+                Engines.Run("/bmrai on")
+                Engines.Run("/bmrai followtarget on") -- vnavmeshのルート選択を上書きするため、時々壁にぶつかることがあります
+                Engines.Run("/bmrai followcombat on")
+                Engines.Run("/bmrai maxdistancetarget " .. MaxDistance)
+                if MoveToMob == true then
+                    Engines.Run("/bmrai followoutofcombat on")
+                end
             elseif DodgingPlugin == "VBM" then
-                yield("/vbmai on")
-                yield("/vbmai followtarget on") -- overrides navmesh path and runs into walls sometimes
-                yield("/vbmai followcombat on")
-                -- yield("/bmrai followoutofcombat on")
-                yield("/vbmai maxdistancetarget " .. MaxDistance)
+                Engines.Run("/vbmai on")
+                Engines.Run("/vbmai followtarget on") -- vnavmeshのルート選択を上書きするため、時々壁にぶつかることがあります
+                Engines.Run("/vbmai followcombat on")
+                Engines.Run("/vbmai maxdistancetarget " .. MaxDistance)
+                if MoveToMob == true then
+                    Engines.Run("/bmrai followoutofcombat on")
+                end
                 if RotationPlugin ~= "VBM" then
-                    yield("/vbmai ForbidActions on") --This Disables VBM AI Auto-Target
+                    Engines.Run("/vbmai ForbidActions on") -- VBM AIの自動ターゲットを無効化する
                 end
             end
             AiDodgingOn = true
@@ -2404,29 +2521,31 @@ function TurnOffCombatMods()
         CombatModsOn = false
 
         if RotationPlugin == "RSR" then
-            yield("/rotation off")
+            Engines.Run("/rotation off")
             Dalamud.Log("[FATE] TurnOffCombatMods /rotation off")
         elseif RotationPlugin == "BMR" or RotationPlugin == "VBM" then
-            yield("/bmrai setpresetname nil")
+            Engines.Run("/bmrai setpresetname nil")
         elseif RotationPlugin == "Wrath" then
-            yield("/wrath auto off")
+            Engines.Run("/wrath auto off")
         end
 
-        -- turn off BMR so you don't start following other mobs
+        -- BMRをオフにし、他のモブを追跡しないようにする
         if AiDodgingOn then
             if DodgingPlugin == "BMR" then
-                yield("/bmrai off")
-                yield("/bmrai followtarget off")
-                yield("/bmrai followcombat off")
-                yield("/bmrai followoutofcombat off")
+                Engines.Run("/bmrai off")
+                Engines.Run("/bmrai followtarget off")
+                Engines.Run("/bmrai followcombat off")
+                Engines.Run("/bmrai followoutofcombat off")
+                Engines.Run("/bmrai followoutofcombat off")
             elseif DodgingPlugin == "VBM" then
-                yield("/vbm ar disable")
-                yield("/vbmai off")
-                yield("/vbmai followtarget off")
-                yield("/vbmai followcombat off")
-                yield("/vbmai followoutofcombat off")
+                Engines.Run("/vbm ar disable")
+                Engines.Run("/vbmai off")
+                Engines.Run("/vbmai followtarget off")
+                Engines.Run("/vbmai followcombat off")
+                Engines.Run("/vbmai followoutofcombat off")
+                Engines.Run("/bmrai followoutofcombat off")
                 if RotationPlugin ~= "VBM" then
-                    yield("/vbmai ForbidActions off") --This Enables VBM AI Auto-Target
+                    Engines.Run("/vbmai ForbidActions off") -- VBM AIの自動ターゲットを有効化する
                 end
             end
             AiDodgingOn = false
@@ -2435,6 +2554,11 @@ function TurnOffCombatMods()
 end
 
 function HandleUnexpectedCombat()
+    if Svc.Condition[CharacterCondition.mounted] or Svc.Condition[CharacterCondition.flying] then
+        Dalamud.Log("[FATE] UnexpectedCombat: Dismounting due to combat")
+        Dismount()
+        return
+    end
     TurnOnCombatMods("manual")
 
     local nearestFate = Fates.GetNearestFate()
@@ -2444,12 +2568,12 @@ function HandleUnexpectedCombat()
         Dalamud.Log("[FATE] State Change: DoFate")
         return
     elseif not Svc.Condition[CharacterCondition.inCombat] then
-        yield("/vnav stop")
+        Engines.Run("/vnav stop")
         ClearTarget()
         TurnOffCombatMods()
         State = CharacterState.ready
         Dalamud.Log("[FATE] State Change: Ready")
-        local randomWait = (math.floor(math.random()*MaxWait * 1000)/1000) + MinWait -- truncated to 3 decimal places
+        local randomWait = (math.floor(math.random()*MaxWait * 1000)/1000) + MinWait -- 小数点以下3桁で切り捨て
         yield("/wait "..randomWait)
         return
     end
@@ -2462,28 +2586,28 @@ function HandleUnexpectedCombat()
     --     return
     -- end
 
-    -- targets whatever is trying to kill you
+    -- 敵視リストに表示されている敵をターゲットする
     if Svc.Targets.Target == nil then
-        yield("/battletarget")
+        Engines.Run("/battletarget")
     end
 
-    -- pathfind closer if enemies are too far
+    -- 敵が遠い場合は自動で近づく
     if Svc.Targets.Target ~= nil then
         if GetDistanceToTargetFlat() > (MaxDistance + GetTargetHitboxRadius() + GetPlayerHitboxRadius()) then
             if not (IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning()) then
                 if Player.CanFly and SelectedZone.flying then
-                    yield("/vnav flytarget")
+                    Engines.Run("/vnav flytarget")
                 else
                     MoveToTargetHitbox()
                 end
             end
         else
             if IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning() then
-                yield("/vnav stop")
+                Engines.Run("/vnav stop")
             elseif not Svc.Condition[CharacterCondition.inCombat] then
-                --inch closer 3 seconds
+                -- 3秒かけて微調整しながら近づく
                 if Svc.Condition[CharacterCondition.flying] and SelectedZone.flying then
-                    yield("/vnav flytarget")
+                    Engines.Run("/vnav flytarget")
                 else
                     MoveToTargetHitbox()
                 end
@@ -2494,8 +2618,6 @@ function HandleUnexpectedCombat()
     yield("/wait 1")
 end
 
-
-
 function DoFate()
     Dalamud.Log("[FATE] DoFate")
     if WaitingForFateRewards == nil or WaitingForFateRewards.fateId ~= CurrentFate.fateId then
@@ -2503,28 +2625,28 @@ function DoFate()
         Dalamud.Log("[FATE] WaitingForFateRewards DoFate: "..tostring(WaitingForFateRewards.fateId))
     end
     local currentClass = Player.Job
-    -- switch classes (mostly for continutation fates that pop you directly into the next one)
+    -- ジョブチェンジ（特に連続FATEで次のFATEへ即時移行する場合に使用）
     if CurrentFate.isBossFate and BossFatesClass ~= nil and currentClass ~= BossFatesClass.classId and not Player.IsBusy then
         TurnOffCombatMods()
-        yield("/gs change "..BossFatesClass.className)
+        Engines.Run("/gs change "..BossFatesClass.className)
         yield("/wait 1")
         return
     elseif not CurrentFate.isBossFate and BossFatesClass ~= nil and currentClass ~= MainClass.classId and not Player.IsBusy then
         TurnOffCombatMods()
-        yield("/gs change "..MainClass.className)
+        Engines.Run("/gs change "..MainClass.className)
         yield("/wait 1")
         return
     elseif InActiveFate() and (CurrentFate.fateObject.MaxLevel < Player.Job.Level) and not Player.IsLevelSynced then
-        yield("/lsync")
-        yield("/wait 0.5") -- give it a second to register
-    elseif IsFateActive(CurrentFate.fateObject) and not InActiveFate() and CurrentFate.fateObject.Progress ~= nil and CurrentFate.fateObject.Progress < 100 and (GetDistanceToPoint(CurrentFate.position) < CurrentFate.fateObject.Radius + 10) and not Svc.Condition[CharacterCondition.mounted] and not (IPC.vnavmesh.IsRunning() or IPC.vnavmesh.PathfindInProgress()) then -- got pushed out of fate. go back
-        yield("/vnav stop")
+        Engines.Run("/lsync")
+        yield("/wait 0.5") -- レベルシンクの適用を確認するために少し待機
+    elseif IsFateActive(CurrentFate.fateObject) and not InActiveFate() and CurrentFate.fateObject.Progress ~= nil and CurrentFate.fateObject.Progress < 100 and (GetDistanceToPoint(CurrentFate.position) < CurrentFate.fateObject.Radius + 10) and not Svc.Condition[CharacterCondition.mounted] and not (IPC.vnavmesh.IsRunning() or IPC.vnavmesh.PathfindInProgress()) then -- FATE範囲外に押し出されたら範囲内に戻る
+        Engines.Run("/vnav stop")
         yield("/wait 1")
         Dalamud.Log("[FATE] pushed out of fate going back!")
         IPC.vnavmesh.PathfindAndMoveTo(CurrentFate.position, Svc.Condition[CharacterCondition.flying] and SelectedZone.flying)
         return
     elseif not IsFateActive(CurrentFate.fateObject) or CurrentFate.fateObject.Progress == 100 then
-        yield("/vnav stop")
+        Engines.Run("/vnav stop")
         ClearTarget()
         if not Dalamud.Log("[FATE] HasContintuation check") and CurrentFate.hasContinuation then
             LastFateEndTime = os.clock()
@@ -2534,9 +2656,11 @@ function DoFate()
         else
             DidFate = true
             Dalamud.Log("[FATE] No continuation for "..CurrentFate.fateName)
-            local randomWait = (math.floor(math.random() * (math.max(0, MaxWait - 3)) * 1000)/1000) + MinWait -- truncated to 3 decimal places
+            local randomWait = (math.floor(math.random() * (math.max(0, MaxWait - 3)) * 1000)/1000) + MinWait -- 小数点以下3桁で切り捨て
             yield("/wait "..randomWait)
             TurnOffCombatMods()
+            ForlornMarked = false
+            MovingAnnouncementLock = false
             State = CharacterState.ready
             Dalamud.Log("[FATE] State Change: Ready")
         end
@@ -2546,9 +2670,9 @@ function DoFate()
         Dalamud.Log("[FATE] State Change: MiddleOfFateDismount")
         return
     elseif CurrentFate.isCollectionsFate then
-        yield("/wait 1") -- needs a moment after start of fate for GetFateEventItem to populate
+        yield("/wait 1") -- FATE開始直後は、GetFateEventItemでイベントアイテム情報が取得されるまで少し待機する
         if Inventory.GetItemCount(CurrentFate.fateObject.EventItem) >= 7 or (GotCollectionsFullCredit and CurrentFate.fateObject.Progress == 100) then
-            yield("/vnav stop")
+            Engines.Run("/vnav stop")
             State = CharacterState.collectionsFateTurnIn
             Dalamud.Log("[FATE] State Change: CollectionsFatesTurnIn")
         end
@@ -2556,7 +2680,7 @@ function DoFate()
 
     Dalamud.Log("[FATE] DoFate->Finished transition checks")
 
-    -- do not target fate npc during combat
+    -- 戦闘中はFATE開始NPCをターゲットしない
     if CurrentFate.npcName ~=nil and GetTargetName() == CurrentFate.npcName then
         Dalamud.Log("[FATE] Attempting to clear target.")
         ClearTarget()
@@ -2567,11 +2691,11 @@ function DoFate()
 
     GemAnnouncementLock = false
 
-    -- switches to targeting forlorns for bonus (if present)
+    -- ボーナス対象のフォーローン/フォーローン・メイデンがいた場合はそれをターゲットする
     if not IgnoreForlorns then
-        yield("/target フォーローン・メイデン")
+        Engines.Run("/target フォーローン・メイデン")
         if not IgnoreBigForlornOnly then
-            yield("/target フォーローン")
+            Engines.Run("/target フォーローン")
         end
     end
 
@@ -2580,9 +2704,9 @@ function DoFate()
             ClearTarget()
         elseif not Svc.Targets.Target.IsDead then
             if not ForlornMarked then
-                yield("/enemysign attack1")
-                if Echo == "All" then
-                    yield("/echo Found Forlorn! <se.3>")
+                Engines.Run("/mk attack1")
+                if Echo == "all" then
+                    Engines.Run("/echo フォーローン/フォーローン・メイデンを発見しました！ <se.3>")
                 end
                 TurnOffAoes()
                 ForlornMarked = true
@@ -2595,39 +2719,39 @@ function DoFate()
         TurnOnAoes()
     end
 
-    -- targets whatever is trying to kill you
+    -- 敵視リストに表示されている敵をターゲットする
     if Entity.Target == nil then
-        yield("/battletarget")
+        Engines.Run("/battletarget")
     end
 
-    -- clears target
+    -- 現在のターゲットを解除する
     if Entity.Target ~= nil and Entity.Target.FateId ~= CurrentFate.fateId and not Entity.Target.IsInCombat then
         Entity.Target:ClearTarget()
     end
 
-    -- do not interrupt casts to path towards enemies
+    -- 敵に向かって移動する際、詠唱中のアクションを中断しない
     if Svc.Condition[CharacterCondition.casting] then
         return
     end
 
-    --hold buff thingy
+    --FATEが設定した進行度に到達したら2分バーストを温存する
     if CurrentFate.fateObject.Progress ~= nil and CurrentFate.fateObject.Progress >= PercentageToHoldBuff then
         TurnOffRaidBuffs()
     end
 
-    -- pathfind closer if enemies are too far
+    -- 敵が離れすぎている場合は近くへ移動するためにルート探索します
     if not Svc.Condition[CharacterCondition.inCombat] then
         if Svc.Targets.Target ~= nil then
             if GetDistanceToTargetFlat() <= (MaxDistance + GetTargetHitboxRadius() + GetPlayerHitboxRadius()) then
                 if IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning() then
-                    yield("/vnav stop")
-                    yield("/wait 5.002") -- wait 5s before inching any closer
-                elseif (GetDistanceToTargetFlat() > (1 + GetTargetHitboxRadius() + GetPlayerHitboxRadius())) and not Svc.Condition[CharacterCondition.casting] then -- never move into hitbox
-                    yield("/vnav movetarget")
-                    yield("/wait 1") -- inch closer by 1s
+                    Engines.Run("/vnav stop")
+                    yield("/wait 5.002") -- 5秒待機してから少しずつ近づく
+                elseif (GetDistanceToTargetFlat() > (1 + GetTargetHitboxRadius() + GetPlayerHitboxRadius())) and not Svc.Condition[CharacterCondition.casting] then -- 敵のターゲットサークル内に入らない
+                    Engines.Run("/vnav movetarget")
+                    yield("/wait 1") -- 1秒間少しずつ近づく
                 end
             elseif not (IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning()) then
-                yield("/wait 5.003") -- give 5s for enemy AoE casts to go off before attempting to move closer
+                yield("/wait 5.003") -- 敵のAoE詠唱が終わるまで5秒待機してから近づく
                 if (Svc.Targets.Target ~= nil and not Svc.Condition[CharacterCondition.inCombat]) and not Svc.Condition[CharacterCondition.casting] then
                     MoveToTargetHitbox()
                 end
@@ -2635,7 +2759,7 @@ function DoFate()
             return
         else
             AttemptToTargetClosestFateEnemy()
-            yield("/wait 1") -- wait in case target doesn't stick
+            yield("/wait 1") -- ターゲットが確実にセットされるよう1秒待機する
             if (Svc.Targets.Target == nil) and not Svc.Condition[CharacterCondition.casting] then
                 IPC.vnavmesh.PathfindAndMoveTo(CurrentFate.position, false)
             end
@@ -2643,14 +2767,14 @@ function DoFate()
     else
         if Svc.Targets.Target ~= nil and (GetDistanceToTargetFlat() <= (MaxDistance + GetTargetHitboxRadius() + GetPlayerHitboxRadius())) then
             if IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning() then
-                yield("/vnav stop")
+                Engines.Run("/vnav stop")
             end
         elseif not CurrentFate.isBossFate then
             if not (IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning()) then
                 yield("/wait 5.004")
                 if Svc.Targets.Target ~= nil and not Svc.Condition[CharacterCondition.casting] then
                     if Svc.Condition[CharacterCondition.flying] and SelectedZone.flying then
-                        yield("/vnav flytarget")
+                        Engines.Run("/vnav flytarget")
                     else
                         MoveToTargetHitbox()
                     end
@@ -2660,50 +2784,121 @@ function DoFate()
     end
 end
 
---#endregion
+--#バトルセクションここまで
 
---#region State Transition Functions
+--#キャラクター状態切り替えセクションここから
 
 function Ready()
+    if SelectedZone == nil or SelectedZone.zoneId == nil then
+        Engines.Run("/echo  [FATE] ERROR: SelectedZone is not set! Aborting.")
+        StopScript = true
+        return
+    end
+    if StopScript then return end --StopScript が true の場合、Ready 関数を早期終了する
+
     FoodCheck()
     PotionCheck()
 
-    CombatModsOn = false -- expect RSR to turn off after every fate
-    GotCollectionsFullCredit = false
-    ForlornMarked = false
-    MovingAnnouncementLock = false
+    CombatModsOn = false
 
     local shouldWaitForBonusBuff = WaitIfBonusBuff and (HasStatusId(1288) or HasStatusId(1289))
     local needsRepair = Inventory.GetItemsInNeedOfRepairs(RemainingDurabilityToRepair)
     local spiritbonded = Inventory.GetSpiritbondedItems()
+
+    if not GemAnnouncementLock and (Echo == "all" or Echo == "gems") then
+        GemAnnouncementLock = true
+        if BicolorGemCount >= 1400 then
+            Engines.Run("/echo  [FATE] You're almost capped with "..tostring(BicolorGemCount).."/1500 gems! <se.3>")
+            if ShouldExchangeBicolorGemstones and not shouldWaitForBonusBuff and Player.IsLevelSynced ~= true then
+                State = CharacterState.exchangingVouchers
+                Dalamud.Log("[FATE] State Change: ExchangingVouchers")
+                return
+            end
+        else
+            Engines.Run("/echo  [FATE] Gems: "..tostring(BicolorGemCount).."/1500")
+        end
+    end
+
+    if RemainingDurabilityToRepair > 0 and needsRepair.Count > 0 and (not shouldWaitForBonusBuff or (SelfRepair and Inventory.GetItemCount(33916) > 0)) then
+        State = CharacterState.repair
+        Dalamud.Log("[FATE] State Change: Repair")
+        return
+    end
+
+    if ShouldExtractMateria and spiritbonded.Count > 0 and Inventory.GetFreeInventorySlots() > 1 then
+        State = CharacterState.extractMateria
+        Dalamud.Log("[FATE] State Change: ExtractMateria")
+        return
+    end
+
+    if WaitingForFateRewards == nil and Retainers and ARRetainersWaitingToBeProcessed() and Inventory.GetFreeInventorySlots() > 1 and not shouldWaitForBonusBuff then
+        State = CharacterState.processRetainers
+        Dalamud.Log("[FATE] State Change: ProcessingRetainers")
+        return
+    end
+
+    if ShouldGrandCompanyTurnIn and Inventory.GetFreeInventorySlots() < InventorySlotsLeft and not shouldWaitForBonusBuff then
+        State = CharacterState.gcTurnIn
+        Dalamud.Log("[FATE] State Change: GCTurnIn")
+        return
+    end
+
+    if Svc.ClientState.TerritoryType ~= SelectedZone.zoneId then
+        if not SelectedZone or not SelectedZone.aetheryteList or not SelectedZone.aetheryteList[1] then
+            Engines.Run("/echo  [FATE] ERROR: No aetheryte found for selected zone. Cannot teleport. Stopping script.")
+            StopScript = true
+            return
+        end
+        local teleSuccess = TeleportTo(SelectedZone.aetheryteList[1].aetheryteName)
+        if teleSuccess == false then
+            Engines.Run("/echo  [FATE] ERROR: Teleportation failed. Stopping script.")
+            StopScript = true
+            return
+        end
+        Dalamud.Log("[FATE] Teleport Back to Farming Zone")
+        return
+    end
+
+    if ShouldSummonChocobo and GetBuddyTimeRemaining() <= ResummonChocoboTimeLeft and (not shouldWaitForBonusBuff or Inventory.GetItemCount(4868) > 0) then
+        State = CharacterState.summonChocobo
+        Dalamud.Log("[FATE] State Change: summonChocobo")
+        return
+    end
 
     NextFate = SelectNextFate()
     if CurrentFate ~= nil and not IsFateActive(CurrentFate.fateObject) then
         CurrentFate = nil
     end
 
-    if CurrentFate == nil then
-        Dalamud.Log("[FATE] CurrentFate is nil")
-    else
-        Dalamud.Log("[FATE] CurrentFate is "..CurrentFate.fateName)
-    end
-
     if NextFate == nil then
-        Dalamud.Log("[FATE] NextFate is nil")
-    else
-        Dalamud.Log("[FATE] NextFate is "..NextFate.fateName)
+        if EnableChangeInstance and GetZoneInstance() > 0 and not shouldWaitForBonusBuff then
+            State = CharacterState.changingInstances
+            Dalamud.Log("[FATE] State Change: ChangingInstances")
+            return
+        end
+        if CompanionScriptMode and not shouldWaitForBonusBuff then
+            if WaitingForFateRewards == nil then
+                StopScript = true
+                Dalamud.Log("[FATE] StopScript: Ready")
+            else
+                Dalamud.Log("[FATE] Waiting for fate rewards")
+            end
+            return
+        end
+        if DownTimeWaitAtNearestAetheryte and (Svc.Targets.Target == nil or GetTargetName() ~= "エーテライト" or GetDistanceToTarget() > 20) then
+            State = CharacterState.flyBackToAetheryte
+            Dalamud.Log("[FATE] State Change: FlyBackToAetheryte")
+            return
+        end
+        if MoveToRandomSpot then
+            MoveToRandomNearbySpot(50, 75)
+            yield("/wait 10")
+        end
+        return        
     end
 
-    if not Dalamud.Log("[FATE] Ready -> Player.Available") and not Player.Available then
-        return
-    elseif not Dalamud.Log("[FATE] Ready -> Repair") and RemainingDurabilityToRepair > 0 and needsRepair.Count > 0 and
-        (not shouldWaitForBonusBuff or (SelfRepair and Inventory.GetItemCount(33916) > 0)) then
-        State = CharacterState.repair
-        Dalamud.Log("[FATE] State Change: Repair")
-    elseif not Dalamud.Log("[FATE] Ready -> ExtractMateria") and ShouldExtractMateria and spiritbonded.Count > 0 and Inventory.GetFreeInventorySlots() > 1 then
-        State = CharacterState.extractMateria
-        Dalamud.Log("[FATE] State Change: ExtractMateria")
-    elseif (not Dalamud.Log("[FATE] Ready -> WaitBonusBuff") and NextFate == nil and shouldWaitForBonusBuff) and DownTimeWaitAtNearestAetheryte then
+
+    if NextFate == nil and shouldWaitForBonusBuff and DownTimeWaitAtNearestAetheryte then
         if Svc.Targets.Target == nil or GetTargetName() ~= "エーテライト" or GetDistanceToTarget() > 20 then
             State = CharacterState.flyBackToAetheryte
             Dalamud.Log("[FATE] State Change: FlyBackToAetheryte")
@@ -2711,77 +2906,28 @@ function Ready()
             yield("/wait 10")
         end
         return
-    elseif not Dalamud.Log("[FATE] Ready -> ExchangingVouchers") and
-        ShouldExchangeBicolorGemstones and (BicolorGemCount >= 1400) and not shouldWaitForBonusBuff
-    then
-        if WaitingForFateRewards == nil then
-            State = CharacterState.exchangingVouchers
-            Dalamud.Log("[FATE] State Change: ExchangingVouchers")
-        else
-            Dalamud.Log("[FATE] Waiting for fate rewards: "..WaitingForFateRewards.fateId)
-        end
-    elseif not Dalamud.Log("[FATE] Ready -> ProcessRetainers") and WaitingForFateRewards == nil and
-        Retainers and ARRetainersWaitingToBeProcessed() and Inventory.GetFreeInventorySlots() > 1  and not shouldWaitForBonusBuff
-    then
-        State = CharacterState.processRetainers
-        Dalamud.Log("[FATE] State Change: ProcessingRetainers")
-    elseif not Dalamud.Log("[FATE] Ready -> GC TurnIn") and ShouldGrandCompanyTurnIn and
-        Inventory.GetFreeInventorySlots() < InventorySlotsLeft and not shouldWaitForBonusBuff
-    then
-        State = CharacterState.gcTurnIn
-        Dalamud.Log("[FATE] State Change: GCTurnIn")
-    elseif not Dalamud.Log("[FATE] Ready -> TeleportBackToFarmingZone") and Svc.ClientState.TerritoryType ~=  SelectedZone.zoneId then
-        TeleportTo(SelectedZone.aetheryteList[1].aetheryteName)
-        return
-    elseif not Dalamud.Log("[FATE] Ready -> SummonChocobo") and ShouldSummonChocobo and GetBuddyTimeRemaining() <= ResummonChocoboTimeLeft and
-        (not shouldWaitForBonusBuff or Inventory.GetItemCount(4868) > 0) then
-        State = CharacterState.summonChocobo
-    elseif not Dalamud.Log("[FATE] Ready -> NextFate nil") and NextFate == nil then
-        if EnableChangeInstance and GetZoneInstance() > 0 and not shouldWaitForBonusBuff then
-            State = CharacterState.changingInstances
-            Dalamud.Log("[FATE] State Change: ChangingInstances")
-            return
-        elseif CompanionScriptMode and not shouldWaitForBonusBuff then
-            if WaitingForFateRewards == nil then
-                StopScript = true
-                Dalamud.Log("[FATE] StopScript: Ready")
-            else
-                Dalamud.Log("[FATE] Waiting for fate rewards")
-            end
-        elseif (Svc.Targets.Target == nil or GetTargetName() ~= "エーテライト" or GetDistanceToTarget() > 20) and DownTimeWaitAtNearestAetheryte then
-            State = CharacterState.flyBackToAetheryte
-            Dalamud.Log("[FATE] State Change: FlyBackToAetheryte")
-        else
-            if not Svc.Condition[CharacterCondition.mounted] then
-                Mount()
-            end
-            yield("/wait 10")
-        end
-        return
-    elseif CompanionScriptMode and DidFate and not shouldWaitForBonusBuff then
+    end
+
+    if CompanionScriptMode and DidFate and not shouldWaitForBonusBuff then
         if WaitingForFateRewards == nil then
             StopScript = true
             Dalamud.Log("[FATE] StopScript: DidFate")
         else
             Dalamud.Log("[FATE] Waiting for fate rewards")
         end
-    elseif not Dalamud.Log("[FATE] Ready -> MovingToFate") then -- and ((CurrentFate == nil) or (GetFateProgress(CurrentFate.fateId) == 100) and NextFate ~= nil) then
-        CurrentFate = NextFate
-        SetMapFlag(SelectedZone.zoneId, CurrentFate.position)
-        State = CharacterState.moveToFate
-        Dalamud.Log("[FATE] State Change: MovingtoFate "..CurrentFate.fateName)
+        return
     end
 
-    if not GemAnnouncementLock and (Echo == "All" or Echo == "Gems") then
-        GemAnnouncementLock = true
-        if BicolorGemCount >= 1400 then
-            yield("/echo [FATE] You're almost capped with "..tostring(BicolorGemCount).."/1500 gems! <se.3>")
-        else
-            yield("/echo [FATE] Gems: "..tostring(BicolorGemCount).."/1500")
-        end
+    if not Player.Available then
+        return
     end
+
+    CurrentFate = NextFate
+    HasFlownUpYet = false
+    SetMapFlag(SelectedZone.zoneId, CurrentFate.position)
+    State = CharacterState.moveToFate
+    Dalamud.Log("[FATE] State Change: MovingtoFate "..CurrentFate.fateName)
 end
-
 
 function HandleDeath()
     CurrentFate = nil
@@ -2791,27 +2937,27 @@ function HandleDeath()
     end
 
     if IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning() then
-        yield("/vnav stop")
+        Engines.Run("/vnav stop")
     end
 
-    if Svc.Condition[CharacterCondition.dead] then --Condition Dead
+    if Svc.Condition[CharacterCondition.dead] then --コンディションが Dead の場合
         if ReturnOnDeath then
             if Echo and not DeathAnnouncementLock then
                 DeathAnnouncementLock = true
-                if Echo == "All" then
-                    yield("/echo [FATE] You have died. Returning to home aetheryte.")
+                if Echo == "all" then
+                    Engines.Run("/echo  [FATE] You have died. Returning to home aetheryte.")
                 end
             end
 
-            if Addons.GetAddon("SelectYesno").Ready then --rez addon yes
-                yield("/callback SelectYesno true 0")
+            if Addons.GetAddon("SelectYesno").Ready then --蘇生をもらったら受諾する
+                Engines.Run("/callback SelectYesno true 0")
                 yield("/wait 0.1")
             end
         else
             if Echo and not DeathAnnouncementLock then
                 DeathAnnouncementLock = true
-                if Echo == "All" then
-                    yield("/echo [FATE] You have died. Waiting until script detects you're alive again...")
+                if Echo == "all" then
+                    Engines.Run("/echo  [FATE] You have died. Waiting until script detects you're alive again...")
                 end
             end
             yield("/wait 1")
@@ -2820,6 +2966,7 @@ function HandleDeath()
         State = CharacterState.ready
         Dalamud.Log("[FATE] State Change: Ready")
         DeathAnnouncementLock = false
+        HasFlownUpYet = false
     end
 end
 
@@ -2828,12 +2975,12 @@ function ExecuteBicolorExchange()
 
     if BicolorGemCount >= 1400 then
         if Addons.GetAddon("SelectYesno").Ready then
-            yield("/callback SelectYesno true 0")
+            Engines.Run("/callback SelectYesno true 0")
             return
         end
 
         if Addons.GetAddon("ShopExchangeCurrency").Ready then
-            yield("/callback ShopExchangeCurrency false 0 "..SelectedBicolorExchangeData.item.itemIndex.." "..(BicolorGemCount//SelectedBicolorExchangeData.item.price))
+            Engines.Run("/callback ShopExchangeCurrency false 0 "..SelectedBicolorExchangeData.item.itemIndex.." "..(BicolorGemCount//SelectedBicolorExchangeData.item.price))
             return
         end
 
@@ -2845,12 +2992,12 @@ function ExecuteBicolorExchange()
         if SelectedBicolorExchangeData.miniAethernet ~= nil and
             GetDistanceToPoint(SelectedBicolorExchangeData.position) > (DistanceBetween(SelectedBicolorExchangeData.miniAethernet.position, SelectedBicolorExchangeData.position) + 10) then
             Dalamud.Log("Distance to shopkeep is too far. Using mini aetheryte.")
-            yield("/li "..SelectedBicolorExchangeData.miniAethernet.name)
-            yield("/wait 1") -- give it a moment to register
+            Engines.Run("/li "..SelectedBicolorExchangeData.miniAethernet.name)
+            yield("/wait 1") -- 処理が反映されるまで少し待機
             return
         elseif Addons.GetAddon("TelepotTown").Ready then
             Dalamud.Log("TelepotTown open")
-            yield("/callback TelepotTown false -1")
+            Engines.Run("/callback TelepotTown false -1")
         elseif GetDistanceToPoint(SelectedBicolorExchangeData.position) > 5 then
             Dalamud.Log("Distance to shopkeep is too far. Walking there.")
             if not (IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning()) then
@@ -2860,19 +3007,19 @@ function ExecuteBicolorExchange()
         else
             Dalamud.Log("[FATE] Arrived at Shopkeep")
             if IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning() then
-                yield("/vnav stop")
+                Engines.Run("/vnav stop")
             end
     
             if Svc.Targets.Target == nil or GetTargetName() ~= SelectedBicolorExchangeData.shopKeepName then
-                yield("/target "..SelectedBicolorExchangeData.shopKeepName)
+                Engines.Run("/target "..SelectedBicolorExchangeData.shopKeepName)
             elseif not Svc.Condition[CharacterCondition.occupiedInQuestEvent] then
-                yield("/interact")
+                Engines.Run("/interact")
             end
         end
     else
         if Addons.GetAddon("ShopExchangeCurrency").Ready then
             Dalamud.Log("[FATE] Attemping to close shop window")
-            yield("/callback ShopExchangeCurrency true -1")
+            Engines.Run("/callback ShopExchangeCurrency true -1")
             return
         elseif Svc.Condition[CharacterCondition.occupiedInEvent] then
             Dalamud.Log("[FATE] Character still occupied talking to shopkeeper")
@@ -2897,7 +3044,7 @@ function ProcessRetainers()
         end
 
         if Svc.ClientState.TerritoryType ~=  129 then
-            yield("/vnav stop")
+            Engines.Run("/vnav stop")
             TeleportTo("リムサ・ロミンサ：下甲板層")
             return
         end
@@ -2912,23 +3059,23 @@ function ProcessRetainers()
         end
 
         if Svc.Targets.Target == nil or GetTargetName() ~= summoningBell.name then
-            yield("/target "..summoningBell.name)
+            Engines.Run("/target "..summoningBell.name)
             return
         end
 
         if not Svc.Condition[CharacterCondition.occupiedSummoningBell] then
-            yield("/interact")
+            Engines.Run("/interact")
             if Addons.GetAddon("RetainerList").Ready then
-                yield("/ays e")
-                if Echo == "All" then
-                    yield("/echo [FATE] Processing retainers")
+                Engines.Run("/ays e")
+                if Echo == "all" then
+                    Engines.Run("/echo  [FATE] Processing retainers")
                 end
                 yield("/wait 1")
             end
         end
     else
         if Addons.GetAddon("RetainerList").Ready then
-            yield("/callback RetainerList true -1")
+            Engines.Run("/callback RetainerList true -1")
         elseif not Svc.Condition[CharacterCondition.occupiedSummoningBell] then
             State = CharacterState.ready
             Dalamud.Log("[FATE] State Change: Ready")
@@ -2938,18 +3085,24 @@ end
 
 function GrandCompanyTurnIn()
     if Inventory.GetFreeInventorySlots() <= InventorySlotsLeft then
-        local gcZoneIds = {
-            129, --Limsa Lominsa　リムサ
-            132, --New Gridania　グリダニア
-            130 --"Ul'dah - Steps of Nald"　ウルダハ
-        }
-        if Svc.ClientState.TerritoryType ~=  gcZoneIds[Player.GrandCompany] then
-            yield("/li gc")
-            yield("/wait 1")
-        elseif IPC.Deliveroo.IsTurnInRunning() then
-            return
+        if IPC.Lifestream and IPC.Lifestream.ExecuteCommand then
+            IPC.Lifestream.ExecuteCommand("gc")
+            Dalamud.Log("[FATE] Executed Lifestream teleport to GC.")
         else
-            yield("/deliveroo enable")
+            Engines.Run("/echo  [FATE] Lifestream IPC not available! Cannot teleport to GC.")
+            return
+        end
+        yield("/wait 1")
+        while (IPC.Lifestream.IsBusy and IPC.Lifestream.IsBusy())
+           or (Svc.Condition[CharacterCondition.betweenAreas]) do
+            yield("/wait 0.5")
+        end
+        Dalamud.Log("[FATE] Lifestream complete, standing at GC NPC.")
+        if IPC.AutoRetainer and IPC.AutoRetainer.EnqueueInitiation then
+            IPC.AutoRetainer.EnqueueInitiation()
+            Dalamud.Log("[FATE] Called AutoRetainer.EnqueueInitiation() for GC handin.")
+        else
+            Engines.Run("/echo  [FATE] AutoRetainer IPC not available! Cannot process GC turnin.")
         end
     else
         State = CharacterState.ready
@@ -2960,20 +3113,20 @@ end
 function Repair()
     local needsRepair = Inventory.GetItemsInNeedOfRepairs(RemainingDurabilityToRepair)
     if Addons.GetAddon("SelectYesno").Ready then
-        yield("/callback SelectYesno true 0")
+        Engines.Run("/callback SelectYesno true 0")
         return
     end
 
     if Addons.GetAddon("Repair").Ready then
         if needsRepair.Count == nil or needsRepair.Count == 0 then
-            yield("/callback Repair true -1") -- if you don't need repair anymore, close the menu
+            Engines.Run("/callback Repair true -1") -- もう修理が必要ない場合はメニューを閉じる
         else
-            yield("/callback Repair true 0") -- select repair
+            Engines.Run("/callback Repair true 0") -- 修理を選択する
         end
         return
     end
 
-    -- if occupied by repair, then just wait
+    -- 修理中で操作できない場合はそのまま待機する
     if Svc.Condition[CharacterCondition.occupiedMateriaExtractionAndRepair] then
         Dalamud.Log("[FATE] Repairing...")
         yield("/wait 1")
@@ -2984,7 +3137,7 @@ function Repair()
     if SelfRepair then
         if Inventory.GetItemCount(33916) > 0 then
             if Addons.GetAddon("Shop").Ready then
-                yield("/callback Shop true -1")
+                Engines.Run("/callback Shop true -1")
                 return
             end
 
@@ -3002,7 +3155,7 @@ function Repair()
             if needsRepair.Count > 0 then
                 if not Addons.GetAddon("Repair").Ready then
                     Dalamud.Log("[FATE] Opening repair menu...")
-                    yield("/generalaction 修理")
+                    Engines.Run("/generalaction 修理")
                 end
             else
                 State = CharacterState.ready
@@ -3010,8 +3163,8 @@ function Repair()
             end
         elseif ShouldAutoBuyDarkMatter then
             if Svc.ClientState.TerritoryType ~=  129 then
-                if Echo == "All" then
-                    yield("/echo Out of Dark Matter! Purchasing more from Limsa Lominsa.")
+                if Echo == "all" then
+                    Engines.Run("/echo  Out of Dark Matter! Purchasing more from Limsa Lominsa.")
                 end
                 TeleportTo("リムサ・ロミンサ：下甲板層")
                 return
@@ -3019,28 +3172,28 @@ function Repair()
 
             local darkMatterVendor = { npcName="雑貨屋 ウンシンレール", x=-257.71, y=16.19, z=50.11, wait=0.08 }
             if GetDistanceToPoint(darkMatterVendor.position) > (DistanceBetween(hawkersAlleyAethernetShard.position, darkMatterVendor.position) + 10) then
-                yield("/li マーケット（国際街広場）")
-                yield("/wait 1") -- give it a moment to register
+                Engines.Run("/li マーケット（国際街広場）")
+                yield("/wait 1") -- 処理が反映されるまで少し待機する
             elseif Addons.GetAddon("TelepotTown").Ready then
-                yield("/callback TelepotTown false -1")
+                Engines.Run("/callback TelepotTown false -1")
             elseif GetDistanceToPoint(darkMatterVendor.position) > 5 then
                 if not (IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning()) then
                     IPC.vnavmesh.PathfindAndMoveTo(darkMatterVendor.position, false)
                 end
             else
                 if Svc.Targets.Target == nil or GetTargetName() ~= darkMatterVendor.npcName then
-                    yield("/target "..darkMatterVendor.npcName)
+                    Engines.Run("/target "..darkMatterVendor.npcName)
                 elseif not Svc.Condition[CharacterCondition.occupiedInQuestEvent] then
-                    yield("/interact")
+                    Engines.Run("/interact")
                 elseif Addons.GetAddon("SelectYesno").Ready then
-                    yield("/callback SelectYesno true 0")
+                    Engines.Run("/callback SelectYesno true 0")
                 elseif Addons.GetAddon("Shop") then
-                    yield("/callback Shop true 0 40 99")
+                    Engines.Run("/callback Shop true 0 40 99")
                 end
             end
         else
-            if Echo == "All" then
-                yield("/echo Out of Dark Matter and ShouldAutoBuyDarkMatter is false. Switching to Limsa mender.")
+            if Echo == "all" then
+                Engines.Run("/echo  Out of Dark Matter and ShouldAutoBuyDarkMatter is false. Switching to Limsa mender.")
             end
             SelfRepair = false
         end
@@ -3053,19 +3206,19 @@ function Repair()
             
             local mender = { npcName="修理屋 アリステア", x=-246.87, y=16.19, z=49.83 }
             if GetDistanceToPoint(mender.position) > (DistanceBetween(hawkersAlleyAethernetShard.position, mender.position) + 10) then
-                yield("/li マーケット（国際街広場）")
-                yield("/wait 1") -- give it a moment to register
+                Engines.Run("/li マーケット（国際街広場）")
+                yield("/wait 1") -- 処理が反映されるまで少し待機する
             elseif Addons.GetAddon("TelepotTown").Ready then
-                yield("/callback TelepotTown false -1")
+                Engines.Run("/callback TelepotTown false -1")
             elseif GetDistanceToPoint(mender.position) > 5 then
                 if not (IPC.vnavmesh.PathfindInProgress() or IPC.vnavmesh.IsRunning()) then
                     IPC.vnavmesh.PathfindAndMoveTo(mender.position, false)
                 end
             else
                 if Svc.Targets.Target == nil or GetTargetName() ~= mender.npcName then
-                    yield("/target "..mender.npcName)
+                    Engines.Run("/target "..mender.npcName)
                 elseif not Svc.Condition[CharacterCondition.occupiedInQuestEvent] then
-                    yield("/interact")
+                    Engines.Run("/interact")
                 end
             end
         else
@@ -3088,20 +3241,24 @@ function ExtractMateria()
 
     if Inventory.GetSpiritbondedItems().Count > 0 and Inventory.GetFreeInventorySlots() > 1 then
         if not Addons.GetAddon("Materialize").Ready then
-            yield("/generalaction \"マテリア精製\"")
+            Engines.Run("/generalaction マテリア精製")
+            yield("/wait .25")
             return
         end
 
         Dalamud.Log("[FATE] Extracting materia...")
             
         if Addons.GetAddon("MaterializeDialog").Ready then
-            yield("/callback MaterializeDialog true 0")
+            Engines.Run("/callback MaterializeDialog true 0")
+            yield("/wait .25")
         else
-            yield("/callback Materialize true 2 0")
+            Engines.Run("/callback Materialize true 2 0")
+            yield("/wait .25")
         end
     else
         if Addons.GetAddon("Materialize").Ready then
-            yield("/callback Materialize true -1")
+            Engines.Run("/callback Materialize true -1")
+            yield("/wait .25")
         else
             State = CharacterState.ready
             Dalamud.Log("[FATE] State Change: Ready")
@@ -3109,12 +3266,12 @@ function ExtractMateria()
     end
 end
 
---#endregion State Transition Functions
+--#キャラクター状態切り替えセクションここまで
 
---#region Misc Functions
+--#その他の関数セクションここから
 
 function EorzeaTimeToUnixTime(eorzeaTime)
-    return eorzeaTime/(144/7) -- 24h Eorzea Time equals 70min IRL
+    return eorzeaTime/(144/7) -- エオルゼア時間の24時間 = 現実の70分
 end
 
 function HasStatusId(statusId)
@@ -3131,16 +3288,16 @@ function HasStatusId(statusId)
 end
 
 function FoodCheck()
-    --food usage
+    --食事を使用
     if not HasStatusId(48) and Food ~= "" then
-        yield("/item " .. Food)
+        Engines.Run("/item " .. Food)
     end
 end
 
 function PotionCheck()
-    --pot usage
+    --薬品を使用
     if not HasStatusId(49) and Potion ~= "" then
-        yield("/item " .. Potion)
+        Engines.Run("/item " .. Potion)
     end
 end
 
@@ -3163,66 +3320,101 @@ function ARRetainersWaitingToBeProcessed()
     return false
 end
 
---#endregion Misc Functions
+--#その他の関数セクションここまで
+
+--#メインセクションここから
 
 CharacterState = {
-    ready = Ready,
-    dead = HandleDeath,
-    unexpectedCombat = HandleUnexpectedCombat,
-    mounting = MountState,
-    npcDismount = NpcDismount,
-    MiddleOfFateDismount = MiddleOfFateDismount,
-    moveToFate = MoveToFate,
-    interactWithNpc = InteractWithFateNpc,
-    collectionsFateTurnIn = CollectionsFateTurnIn,
-    doFate = DoFate,
-    waitForContinuation = WaitForContinuation,
-    changingInstances = ChangeInstance,
-    changeInstanceDismount = ChangeInstanceDismount,
-    flyBackToAetheryte = FlyBackToAetheryte,
-    extractMateria = ExtractMateria,
-    repair = Repair,
-    exchangingVouchers = ExecuteBicolorExchange,
-    processRetainers = ProcessRetainers,
-    gcTurnIn = GrandCompanyTurnIn,
-    summonChocobo = SummonChocobo,
-    autoBuyGysahlGreens = AutoBuyGysahlGreens
+    ready                   = Ready,
+    dead                    = HandleDeath,
+    unexpectedCombat        = HandleUnexpectedCombat,
+    mounting                = MountState,
+    npcDismount             = NpcDismount,
+    MiddleOfFateDismount    = MiddleOfFateDismount,
+    moveToFate              = MoveToFate,
+    interactWithNpc         = InteractWithFateNpc,
+    collectionsFateTurnIn   = CollectionsFateTurnIn,
+    doFate                  = DoFate,
+    waitForContinuation     = WaitForContinuation,
+    changingInstances       = ChangeInstance,
+    changeInstanceDismount  = ChangeInstanceDismount,
+    flyBackToAetheryte      = FlyBackToAetheryte,
+    extractMateria          = ExtractMateria,
+    repair                  = Repair,
+    exchangingVouchers      = ExecuteBicolorExchange,
+    processRetainers        = ProcessRetainers,
+    gcTurnIn                = GrandCompanyTurnIn,
+    summonChocobo           = SummonChocobo,
+    autoBuyGysahlGreens     = AutoBuyGysahlGreens
 }
 
---#region Main
+-- 設定セクション
+-- 食事/薬品
+Food                            = Config.Get("Food")
+Potion                          = Config.Get("Potion")
 
-Dalamud.Log("[FATE] Starting fate farming script.")
+-- バディチョコボ
+ResummonChocoboTimeLeft            = 3 * 60        --FATE中にバディチョコボが帰還しないよう、タイマーが設定した秒数以下になったら再召喚する
+ChocoboStance                   = Config.Get("Chocobo Companion Stance") -- オプション: 追従, フリーファイト, ディフェンダースタンス, ヒーラースタンス, アタッカースタンス, None バディチョコボを呼び出さない場合はNoneを選択
+ShouldSummonChocobo =  ChocoboStance == "追従"
+                    or ChocoboStance == "フリーファイト"
+                    or ChocoboStance == "ディフェンダースタンス"
+                    or ChocoboStance == "ヒーラースタンス"
+                    or ChocoboStance == "アタッカースタンス"
+ShouldAutoBuyGysahlGreens       = Config.Get("Buy Gysahl Greens?")
+MountToUse                      = "マウント・ルーレット"       --FATE間の移動に使用するマウント
 
-Food = Config.Get("Food")
-Potion = Config.Get("Potion")
-ResummonChocoboTimeLeft         = 3 * 60        --Resummons chocobo if there's less than this many seconds left on the timer, so it doesn't disappear on you in the middle of a fate.
-ChocoboStance = Config.Get("Chocobo Companion Stance") -- Options: Follow, Free, Defender, Healer, Attacker, None. Do not summon if None.
-ShouldSummonChocobo = ChocoboStance == "追従"
-    or ChocoboStance == "フリーファイト"
-    or ChocoboStance == "ディフェンダースタンス"
-    or ChocoboStance == "ヒーラースタンス"
-    or ChocoboStance == "アタッカースタンス"
+-- リテイナー
 
-ShouldAutoBuyGysahlGreens = Config.Get("Buy Gysahl Greens?")    --
-MountToUse                          = "mount roulette"       --The mount you'd like to use when flying between fates
-FatePriority                        = {"DistanceTeleport", "Progress", "Bonus", "TimeLeft", "Distance"}
 
---Fate Combat Settings
-CompletionToIgnoreFate = Config.Get("Ignore FATE if progress is over (%)")
-MinTimeLeftToIgnoreFate = Config.Get("Ignore FATE if duration is less than (mins)")*60
-CompletionToJoinBossFate = Config.Get("Ignore boss FATEs until progress is at least (%)")
+
+
+--FATE/戦闘
+CompletionToIgnoreFate          = Config.Get("Ignore FATE if progress is over (%)")
+MinTimeLeftToIgnoreFate         = Config.Get("Ignore FATE if duration is less than (mins)") * 60
+CompletionToJoinBossFate        = Config.Get("Ignore boss FATEs until progress is at least (%)")
 CompletionToJoinSpecialBossFates = Config.Get("Ignore Special FATEs until progress is at least (%)")
-ClassForBossFates = ""            --If you want to use a different class for boss fates, set this to the 3 letter abbreviation
-                                                        --for the class. Ex: "PLD"
-JoinCollectionsFates = Config.Get("Do collection FATEs?")
-BonusFatesOnly = Config.Get("Do only bonus FATEs?")         --If true, will only do bonus fates and ignore everything else
+JoinCollectionsFates            = Config.Get("Do collection FATEs?")
+BonusFatesOnly                  = Config.Get("Do only bonus FATEs?") --trueにした場合、ボーナスFATEのみ実行し、それ以外はすべて無視する。
+FatePriority                    = {"DistanceTeleport", "Progress", "Bonus", "TimeLeft", "Distance" }
+MeleeDist                       = Config.Get("Max melee distance")
+RangedDist                      = Config.Get("Max ranged distance")
+--ClassForBossFates                = ""            --ボスFATEの際に別のジョブ/クラスを使用したい場合は、この項目にアルファベット3文字の略称を入力してください。
 
-MeleeDist = Config.Get("Max melee distance")
-RangedDist = Config.Get("Max ranged distance")
+-- 変数の初期化
+StopScript                      = false
+DidFate                         = false
+GemAnnouncementLock             = false
+DeathAnnouncementLock           = false
+MovingAnnouncementLock          = false
+SuccessiveInstanceChanges       = 0
+LastInstanceChangeTimestamp     = 0
+LastTeleportTimeStamp           = 0
+GotCollectionsFullCredit        = false
+WaitingForFateRewards           = nil
+LastFateEndTime                 = os.clock()
+LastStuckCheckTime              = os.clock()
+LastStuckCheckPosition          = Player.Entity.Position
+MainClass                       = Player.Job
+BossFatesClass                  = nil
+if ClassForBossFates ~= "" then
+    BossFatesClass              = GetClassJobTableFromName(ClassForBossFates)
+end
 
-RotationPlugin = Config.Get("Rotation Plugin")
-if RotationPlugin == "Any" then
-    if HasPlugin("Wrath") then
+--フォーローン系ボーナスモブ
+IgnoreForlorns = false
+IgnoreBigForlornOnly = false
+Forlorns = string.lower(Config.Get("Forlorns"))
+if Forlorns == "none" then
+    IgnoreForlorns = true
+elseif Forlorns == "small" then
+    IgnoreBigForlornOnly = true
+end
+
+-- 自動スキル回しプラグイン
+local configRotationPlugin = string.lower(Config.Get("Rotation Plugin"))
+if configRotationPlugin == "any" then
+    if HasPlugin("WrathCombo") then
         RotationPlugin = "Wrath"
     elseif HasPlugin("RotationSolver") then
         RotationPlugin = "RSR"
@@ -3231,66 +3423,33 @@ if RotationPlugin == "Any" then
     elseif HasPlugin("BossMod") then
         RotationPlugin = "VBM"
     end
-elseif RotationPlugin == "Wrath" and HasPlugin("Wrath") then
+elseif configRotationPlugin == "wrath" and HasPlugin("WrathCombo") then
     RotationPlugin = "Wrath"
-elseif RotationPlugin == "RotationSolver" and HasPlugin("RotationSolver") then
+elseif configRotationPlugin == "rotationsolver" and HasPlugin("RotationSolver") then
     RotationPlugin = "RSR"
-elseif RotationPlugin == "BossModReborn" and HasPlugin("BossModReborn") then
+elseif configRotationPlugin == "bossmodreborn" and HasPlugin("BossModReborn") then
     RotationPlugin = "BMR"
-elseif RotationPlugin == "BossMod" and HasPlugin("BossMod") then
+elseif configRotationPlugin == "bossmod" and HasPlugin("BossMod") then
     RotationPlugin = "VBM"
 else
     StopScript = true
 end
-    RSRAoeType                      = "Full"        --Options: Cleave/Full/Off
+RSRAoeType                 = "Full"      --オプション: Cleave/Full/Off
+                                            --Cleave -> 単体対象のAoEアクションのみを使う（となっていますが単体回ししかしません。）
+                                            --Full -> 使用可能なすべてのAoEスキルを使う。（単体なら単体回し、複数的には範囲回しをします。）
+                                            --Off -> AoEアクションを一切使わない（となっていますが範囲回ししかしません。敵がいなくてもナイトのトータルエクリプスのような自己中心範囲のスキルを連打し続けます。）
 
-    -- For BMR/VBM/Wrath
-    RotationSingleTargetPreset      = ""            --Preset name with single target strategies (for forlorns). TURN OFF AUTOMATIC TARGETING FOR THIS PRESET
-    RotationAoePreset               = ""            --Preset with AOE + Buff strategies.
-    RotationHoldBuffPreset          = ""            --Preset to hold 2min burst when progress gets to seleted %
-    PercentageToHoldBuff            = 65            --Ideally you'll want to make full use of your buffs, higher than 70% will still waste a few seconds if progress is too fast.
+-- BMR/VBM/Wrath向け (自動スキル回しプラグイン)
+RotationSingleTargetPreset      = Config.Get("Single Target Rotation") --単体攻撃用のスキル回しプリセット名(フォーローン系ボーナスモブ向け)。 このプリセットでは自動ターゲットをオフにしてください。
+RotationAoePreset               = Config.Get("AoE Rotation")           --バースト込み範囲攻撃用のスキル回しプリセット名。
+RotationHoldBuffPreset          = Config.Get("Hold Buff Rotation")     --バーストを温存するときに使用するプリセット名。FATEが設定した進行度(%)に達した場合に使用します。
+PercentageToHoldBuff            = Config.Get("Percentage to Hold Buff")--リキャスト毎にバーストするのが理想ではありますが、FATE進行度が70%を超えてからバーストした場合は討伐が早すぎて数秒無駄になることがあります。
 
-    IgnoreForlorns = false
-IgnoreBigForlornOnly = false
-Forlorns = Config.Get("Forlorns")
-if Forlorns == "None" then
-    IgnoreForlorns = true
-elseif Forlorns == "Small" then
-    IgnoreBigForlornOnly = true
-end
+-- AOE回避用プラグイン
+local dodgeConfig = string.lower(Config.Get("Dodging Plugin"))  -- オプション: Any / BossModReborn / BossMod / None
 
---Post Fate Settings
-MinWait                             = 3             --Min number of seconds it should wait until mounting up for next fate.
-MaxWait                             = 10            --Max number of seconds it should wait until mounting up for next fate.
-                                                        --Actual wait time will be a randomly generated number between MinWait and MaxWait.
-DownTimeWaitAtNearestAetheryte      = false         --When waiting for fates to pop, should you fly to the nearest Aetheryte and wait there?
-EnableChangeInstance = Config.Get("Change instances if no FATEs?")
-WaitIfBonusBuff = true          --Don't change instances if you have the Twist of Fate bonus buff
-NumberOfInstances = 2
-ShouldExchangeBicolorGemstones = Config.Get("Exchange bicolor gemstones?")
-ItemToPurchase = Config.Get("Exchange bicolor gemstones for")
-ShouldExchangeBicolorGemstones = true
-if ItemToPurchase == "" or ItemToPurchase == nil then
-    ShouldExchangeBicolorGemstones = false
-end
-SelfRepair = Config.Get("Self repair?")
-RemainingDurabilityToRepair     = 10            --the amount it needs to drop before Repairing (set it to 0 if you don't want it to repair)
-ShouldAutoBuyDarkMatter         = true          --Automatically buys a 99 stack of Grade 8 Dark Matter from the Limsa gil vendor if you're out
-ShouldExtractMateria                = true          --should it Extract Materia
-Retainers = Config.Get("Pause for retainers?")
-ShouldGrandCompanyTurnIn = Config.Get("Dump extra gear at GC?")         --should it do Turn ins at the GC (requires Deliveroo)
-    InventorySlotsLeft              = 5             --how much inventory space before turning in
-
-ReturnOnDeath = Config.Get("Return on death?")
-
-Echo = Config.Get("Echo logs")
-CompanionScriptMode                 = false         --Set to true if you are using the fate script with a companion script (such as the Atma Farmer)
-
--- Get user-configured plugin
-local dodgeConfig = Config.Get("Dodging Plugin")  -- Options: Any / BossModReborn / BossMod / None
-
--- Resolve "any" or specific plugin if available
-if dodgeConfig == "Any" then
+-- anyまたは指定されたプラグインが利用可能な場合はそれを選択する
+if dodgeConfig == "any" then
     if HasPlugin("BossModReborn") then
         DodgingPlugin = "BMR"
     elseif HasPlugin("BossMod") then
@@ -3298,68 +3457,74 @@ if dodgeConfig == "Any" then
     else
         DodgingPlugin = "None"
     end
-elseif dodgeConfig == "BossModReborn" and HasPlugin("BossModReborn") then
+elseif dodgeConfig == "bossmodreborn" and HasPlugin("BossModReborn") then
     DodgingPlugin = "BMR"
-elseif dodgeConfig == "BossMod" and HasPlugin("BossMod") then
+elseif dodgeConfig == "bossmod" and HasPlugin("BossMod") then
     DodgingPlugin = "VBM"
 else
     DodgingPlugin = "None"
 end
 
--- Override if RotationPlugin already uses a dodging plugin
+-- 自動スキル回しプラグインにBMR/VBMを指定した場合は自動的にAOE回避用プラグインも同じものを使用する
 if RotationPlugin == "BMR" then
     DodgingPlugin = "BMR"
 elseif RotationPlugin == "VBM" then
     DodgingPlugin = "VBM"
 end
 
--- Final warning if no dodging plugin is active
+-- AOE回避用プラグインがいずれもアクティブでない場合の最終警告
 if DodgingPlugin == "None" then
-    yield("/echo [FATE] Warning: you do not have an AI dodging plugin configured, so your character will stand in AOEs. Please install either Veyn's BossMod or BossMod Reborn")
+    Engines.Run(
+    "/echo  [FATE] Warning: you do not have an AI dodging plugin configured, so your character will stand in AOEs. Please install either Veyn's BossMod or BossMod Reborn")
 end
 
+--FATE終了後の動作設定
+MinWait                        = 3          --次のFATEへ向かう為にマウントへ騎乗するまでの最小待機秒数
+MaxWait                        = 10         --次のFATEへ向かう為にマウントへ騎乗するまでの最大待機秒数
+    --実際の待機時間は MinWait と MaxWait の間でランダムに生成される。
+DownTimeWaitAtNearestAetheryte = false      --FATEの出現待機中に最寄りのエーテライトへ自走するかどうか。falseのときはエーテライトへ向かわず待機する
+MoveToRandomSpot               = false      --FATE出現待機中にランダムな地点へ移動するかどうか。falseのときは移動しない
+InventorySlotsLeft             = 5          --GC納品を行う所持品の空き。設定した数値以下になったらGC納品を行う
+WaitIfBonusBuff                = true       --trueのときにボーナスバフがある場合はインスタンス変更をしない
+NumberOfInstances              = 2
+RemainingDurabilityToRepair    = 10         --修理を行う耐久度（0に設定すると修理しない）
+ShouldAutoBuyDarkMatter        = true       --ダークマターG8がなくなった場合、リムサのNPC「雑貨屋 ウンシンレール」から自動的に99個購入する
+ShouldExtractMateria           = true       --マテリア精製を行うかどうか。trueの時は行う
+
+-- コンフィグ設定
+EnableChangeInstance           = Config.Get("Change instances if no FATEs?")
+ShouldExchangeBicolorGemstones = Config.Get("Exchange bicolor gemstones?")
+ItemToPurchase                 = Config.Get("Exchange bicolor gemstones for")
+if ItemToPurchase == "" or ItemToPurchase == nil then
+    ShouldExchangeBicolorGemstones = false
+end
+ReturnOnDeath                   = Config.Get("Return on death?")
+SelfRepair                      = Config.Get("Self repair?")
+Retainers                       = Config.Get("Pause for retainers?")
+ShouldGrandCompanyTurnIn        = Config.Get("Dump extra gear at GC?")
+Echo                            = string.lower(Config.Get("Echo logs"))
+
+-- プラグインに関する警告
 if Retainers and not HasPlugin("AutoRetainer") then
     Retainers = false
-    yield("/echo [FATE] Warning: you have enabled the feature to process retainers, but you do not have AutoRetainer installed.")
+    Engines.Run("/echo  [FATE] Warning: you have enabled the feature to process retainers, but you do not have AutoRetainer installed.")
 end
 
-if ShouldGrandCompanyTurnIn and not HasPlugin("Deliveroo") then
+if ShouldGrandCompanyTurnIn and not HasPlugin("AutoRetainer") then
     ShouldGrandCompanyTurnIn = false
-    yield("/echo [FATE] Warning: you have enabled the feature to process GC turn ins, but you do not have Deliveroo installed.")
+    Engines.Run("/echo  [FATE] Warning: you have enabled the feature to process GC turn ins, but you do not have AutoRetainer installed.")
 end
 
-if not CompanionScriptMode then
-    yield("/at y")
-end
-
-StopScript = false
-DidFate = false
-GemAnnouncementLock = false
-DeathAnnouncementLock = false
-MovingAnnouncementLock = false
-SuccessiveInstanceChanges = 0
-LastInstanceChangeTimestamp = 0
-LastTeleportTimeStamp = 0
-GotCollectionsFullCredit = false -- needs 7 items for  full
--- variable to track collections fates that you have completed but are still active.
--- will not leave area or change instance if value ~= 0
-WaitingForFateRewards = nil
-LastFateEndTime = os.clock()
-LastStuckCheckTime = os.clock()
-LastStuckCheckPosition = Player.Entity.Position
-MainClass = Player.Job
-BossFatesClass = nil
-if ClassForBossFates ~= "" then
-    BossFatesClass = GetClassJobTableFromName(ClassForBossFates)
-end
+-- 関数
+--戦闘時の最大距離を設定
 SetMaxDistance()
 
+--FATE開始エリアを設定
 SelectedZone = SelectNextZone()
-if SelectedZone.zoneName ~= "" and Echo == "All" then
-    yield("/echo [FATE] Farming "..SelectedZone.zoneName)
+if SelectedZone.zoneName ~= "" and Echo == "all" then
+    Engines.Run("/echo  [FATE] Farming "..SelectedZone.zoneName)
 end
 Dalamud.Log("[FATE] Farming Start for "..SelectedZone.zoneName)
-
 
 if ShouldExchangeBicolorGemstones ~= false then
     for _, shop in ipairs(BicolorExchangeData) do
@@ -3377,25 +3542,33 @@ if ShouldExchangeBicolorGemstones ~= false then
         end
     end
     if SelectedBicolorExchangeData == nil then
-        yield("/echo [FATE] Cannot recognize bicolor shop item "..ItemToPurchase.."! Please make sure it's in the BicolorExchangeData table!")
+        Engines.Run("/echo  [FATE] Cannot recognize bicolor shop item "..ItemToPurchase.."! Please make sure it's in the BicolorExchangeData table!")
         StopScript = true
     end
 end
 
-State = CharacterState.ready
-CurrentFate = nil
 if InActiveFate() then
     CurrentFate = BuildFateTable(Fates.GetNearestFate())
 end
 
 if ShouldSummonChocobo and GetBuddyTimeRemaining() > 0 then
-    yield('/cac "'..ChocoboStance..'"')
+    Engines.Run('/cac "'..ChocoboStance..'"')
+end
+
+Dalamud.Log("[FATE] Starting fate farming script.")
+
+State = CharacterState.ready
+CurrentFate = nil
+
+if CompanionScriptMode == EnableChangeInstance then
+    yield("/echo The companion script will overwrite changing instances.")
+    EnableChangeInstance = false
 end
 
 while not StopScript do
     local nearestFate = Fates.GetNearestFate()
     if not IPC.vnavmesh.IsReady() then
-        yield("/echo [FATE] Waiting for vnavmesh to build...")
+        Engines.Run("/echo  [FATE] Waiting for vnavmesh to build...")
         Dalamud.Log("[FATE] Waiting for vnavmesh to build...")
         repeat
             yield("/wait 1")
@@ -3404,38 +3577,55 @@ while not StopScript do
     if State ~= CharacterState.dead and Svc.Condition[CharacterCondition.dead] then
         State = CharacterState.dead
         Dalamud.Log("[FATE] State Change: Dead")
-    elseif State ~= CharacterState.unexpectedCombat and State ~= CharacterState.doFate and
-        State ~= CharacterState.waitForContinuation and State ~= CharacterState.collectionsFateTurnIn and
-        (not InActiveFate() or (InActiveFate() and IsCollectionsFate(nearestFate.Name) and nearestFate.Progress == 100)) and
-        Svc.Condition[CharacterCondition.inCombat]
+    elseif State ~= CharacterState.unexpectedCombat
+        and State ~= CharacterState.doFate
+        and State ~= CharacterState.waitForContinuation
+        and State ~= CharacterState.collectionsFateTurnIn
+        and Svc.Condition[CharacterCondition.inCombat]
+        and (
+            not InActiveFate()
+            or (InActiveFate() and IsCollectionsFate(nearestFate.Name) and nearestFate.Progress == 100)
+            or State == CharacterState.moveToFate   -- <-- this is new!
+        )
     then
         State = CharacterState.unexpectedCombat
         Dalamud.Log("[FATE] State Change: UnexpectedCombat")
     end
-    
+
     BicolorGemCount = Inventory.GetItemCount(26807)
 
-    if not (Player.Entity.IsCasting or
-        Svc.Condition[CharacterCondition.betweenAreas] or
-        Svc.Condition[CharacterCondition.jumping48] or
-        Svc.Condition[CharacterCondition.jumping61] or
-        Svc.Condition[CharacterCondition.mounting57] or
-        Svc.Condition[CharacterCondition.mounting64] or
-        Svc.Condition[CharacterCondition.beingMoved] or
-        Svc.Condition[CharacterCondition.occupiedMateriaExtractionAndRepair] or
-        IPC.Lifestream.IsBusy())
-    then
-        if WaitingForFateRewards ~= nil and not WaitingForFateRewards.fateObject.State == FateState.Ended then
+    if WaitingForFateRewards ~= nil then
+        local state = WaitingForFateRewards.fateObject and WaitingForFateRewards.fateObject.State or nil
+        if WaitingForFateRewards.fateObject == nil
+            or state == nil
+            or state == FateState.Ended
+            or state == FateState.Failed
+        then
+            local msg = "[FATE] WaitingForFateRewards.fateObject is nil or fate state ("..tostring(state)..") indicates fate is finished for fateId: "..tostring(WaitingForFateRewards.fateId)..". Clearing it."
+            Dalamud.Log(msg)
+            if Echo == "all" then
+                Engines.Run("/echo  "..msg)
+            end
             WaitingForFateRewards = nil
-            Dalamud.Log("[FATE] WaitingForFateRewards: "..tostring(WaitingForFateRewards.fateId))
+        else
+            local msg = "[FATE] Not clearing WaitingForFateRewards: fate state="..tostring(state)..", expected one of [Ended: "..tostring(FateState.Ended)..", Failed: "..tostring(FateState.Failed).."] or nil."
+            Dalamud.Log(msg)
+            if Echo == "all" then
+                Engines.Run("/echo  "..msg)
+            end
         end
-        State()
     end
-    yield("/wait 0.1")
+    if not (Svc.Condition[CharacterCondition.betweenAreas] 
+        or Svc.Condition[CharacterCondition.occupiedMateriaExtractionAndRepair] 
+        or IPC.Lifestream.IsBusy())
+        then
+            State()
+    end
+    yield("/wait 0.25")
 end
-yield("/vnav stop")
+Engines.Run("/vnav stop")
 
 if Player.Job.Id ~= MainClass.Id then
-    yield("/gs change "..MainClass.Name)
+    Engines.Run("/gs change "..MainClass.Name)
 end
---#endregion Main
+--#メインセクションここまで
