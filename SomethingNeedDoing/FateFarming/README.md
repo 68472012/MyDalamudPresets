@@ -5,8 +5,8 @@ https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua</
 
 ## インストール</br>
 スクリプトのGitHubURLをコピーし新SNDのGitHub URL内に貼り付けてCreateまたはImportを押してください。(自動更新)</br>
-<img width="396" height="247" alt="Image" src="https://github.com/user-attachments/assets/368511da-fd4a-466e-8fb4-c4af5bd94c35" /></br>
-<img width="704" height="227" alt="Image" src="https://github.com/user-attachments/assets/964fd0de-7cd8-4b62-902d-00556b5bd218" />
+<img width="399" height="291" alt="Image" src="https://github.com/user-attachments/assets/9153767f-6bd4-4c45-aeb6-20d46ed44d6f" /></br>
+<img width="704" height="227" alt="Image" src="https://github.com/user-attachments/assets/32f1e50c-a144-4b43-805d-53a838cc9886" />
 
 ### or
 
