@@ -13,10 +13,14 @@ description: |
   - リテイナーの再出発やGC納品を行いFATEファームへ戻ります
   - ギサールの野菜とG8ダークマターが不足した場合は自動で購入します
   - アートマファーム専用のコンパニオンスクリプトがあります。または、独自のスクリプトを作成することもできます！（コンパニオンスクリプトのセクションを参照）恐らく機能しません。
-    ※小鳥遊注記：スクリプト内にアートマ用スクリプトに連携するための記述と思われるものがありますが、肝心の「atma farming」がどこにあるのかさっぱりわかりません。
     pot0to's GitHub    https://github.com/pot0to/pot0to-SND-Scripts/blob/main/New%20SND/Fate%20Farming/Fate%20Farming.lua
     baanderson40's GitHub    https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua
     Support via    https://ko-fi.com/baanderson40
+  ※小鳥遊コメント※
+  - オプションプラグインでGC納品用にDeliverooが必要と書かれていますが、AutoRetainerで納品するように書かれており、また実際の動作でもAutoRetainerで納品が行われているので軍票交換品の設定などご注意ください。
+  - 3355行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
+  - 3480行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
+  - 歯車からの設定項目「Echo logs」について、AllにするとFATE戦闘中に「[FATE] Not clearing WaitingForFateRewards: fate state=Running: 4, expected one of [Ended: Ended: 7, Failed: Failed: 8] 」というログが流れ続けるのでおすすめはしません。
 
 plugin_dependencies:
 - Lifestream
@@ -390,7 +394,6 @@ configs:
 
     -> AutoRetainer : (リテイナーベンチャー用)   https://love.puni.sh/ment.json
     -> Deliveroo : (GC納品用)   https://plugins.carvel.li/
-        ※小鳥遊記：スクリプト見るとAutoRetainerで納品を行っている。
     -> YesAlready : (マテリア精製用)
 
 ]]
