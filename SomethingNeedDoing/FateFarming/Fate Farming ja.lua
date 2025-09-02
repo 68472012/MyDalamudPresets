@@ -17,9 +17,10 @@ description: |
     baanderson40's GitHub    https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua
     Support via    https://ko-fi.com/baanderson40
   ※小鳥遊コメント※
-  - オプションプラグインでGC納品用にDeliverooが必要と書かれていますが、AutoRetainerで納品するように書かれており、また実際の動作でもAutoRetainerで納品が行われているので軍票交換品の設定などご注意ください。
-  - 3355行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
-  - 3480行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
+  - オプションプラグインでGC納品用にDeliverooが必要と書かれていますが、AutoRetainerで納品するように書かれており、また実際の動作でもAutoRetainerで納品が行われています。軍票交換品の設定などにご注意ください。
+  - 3.0.11jaにおいてBMRのみを有効化した状態では移動を行うのみで戦闘してくれませんでした。別途スキル回しプラグインを使用してください。(動作テストではBMR+RSRを使用)
+  - 3356行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
+  - 3481行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
   - 歯車からの設定項目「Echo logs」について、AllにするとFATE戦闘中に「[FATE] Not clearing WaitingForFateRewards: fate state=Running: 4, expected one of [Ended: Ended: 7, Failed: Failed: 8] 」というログが流れ続けるのでおすすめはしません。
 
 plugin_dependencies:
