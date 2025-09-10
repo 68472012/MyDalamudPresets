@@ -1,7 +1,7 @@
 --[=====[
 [[SND Metadata]]
 author: baanderson40 || orginially pot0to  ||  日本語訳 小鳥遊レイ
-version: 3.0.11ja
+version: 3.1.2a ja1
 description: |
   このスクリプトでできること: 
   - バイカラージェムの所持数が上限に近づくとバイカラージェム納品証（新旧どちらでも）へ交換に行きます
@@ -12,15 +12,15 @@ description: |
   - エリア内のFATEが枯れた場合はインスタンスを変更します
   - リテイナーの再出発やGC納品を行いFATEファームへ戻ります
   - ギサールの野菜とG8ダークマターが不足した場合は自動で購入します
-  - アートマファーム専用のコンパニオンスクリプトがあります。または、独自のスクリプトを作成することもできます！（コンパニオンスクリプトのセクションを参照）恐らく機能しません。
+
     pot0to's GitHub    https://github.com/pot0to/pot0to-SND-Scripts/blob/main/New%20SND/Fate%20Farming/Fate%20Farming.lua
     baanderson40's GitHub    https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua
     Support via    https://ko-fi.com/baanderson40
   ※小鳥遊コメント※
   - オプションプラグインでGC納品用にDeliverooが必要と書かれていますが、AutoRetainerで納品するように書かれており、また実際の動作でもAutoRetainerで納品が行われています。軍票交換品の設定などにご注意ください。
   - 3.0.11jaにおいてBMRのみを有効化した状態では移動を行うのみで戦闘してくれませんでした。別途スキル回しプラグインを使用してください。(動作テストではBMR+RSRを使用)
-  - 3356行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
-  - 3481行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
+  - 3322行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
+  - 3447行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
   - 歯車からの設定項目「Echo logs」について、AllにするとFATE戦闘中に「[FATE] Not clearing WaitingForFateRewards: fate state=Running: 4, expected one of [Ended: Ended: 7, Failed: Failed: 8] 」というログが流れ続けるのでおすすめはしません。
 
 plugin_dependencies:
@@ -30,130 +30,101 @@ plugin_dependencies:
 
 configs:
   Rotation Plugin:
-    default: "Any"
-    type: string
     description: |
-      使用するRotation Plugin (自動スキル回しプラグイン) を入力。
-      入力可能な選択肢:
-        - Any
-        - Wrath
-        - RotationSolver
-        - BossMod
-        - BossModReborn
-      デフォルト: Any
+     使用する自動スキル回しプラグインを選択。
+     デフォルト: Any
+    default: "Any"
+    is_choice: true
+    choices: ["Any", "Wrath", "RotationSolver","BossMod", "BossModReborn"]
 
   Dodging Plugin:
-    default: "Any"
-    type: string
     description: |
-      使用するAOE回避用プラグインを入力。
+      使用するAOE回避用プラグインを選択。
       自動スキル回しプラグインにBossModRebornまたはBossModを使用する場合は、回避用プラグインも自動的に同じものを使用します。
-      入力可能な選択肢:
-        - Any
-        - BossMod
-        - BossModReborn
-        - None
       デフォルト: Any
+    default: "Any"
+    is_choice: true
+    choices: ["Any", "BossMod", "BossModReborn", "None"]
 
   BMR/VBM Specific settings:
-    default: false
-    type: boolean
     description: |
      BMR/VBMの詳細設定を使用する。
      自動スキル回しプラグインとしてBMR/VBMを使用している場合のみ使用可能。
      デフォルト: false(チェックOFF)
+    default: false
 
   Single Target Rotation:
-    default: ""
-    type: string
     description: |
      単体攻撃用のスキル回しプリセット名を入力(フォーローン系ボーナスモブ向け)。
      この設定を使用する際は自動ターゲットをオフにしてください。
      デフォルト: 空欄
+    default: ""
 
   AoE Rotation:
-    default: ""
-    type: string
     description: |
      バースト込み範囲攻撃用のスキル回しプリセット名を入力。
      デフォルト: 空欄
+    default: ""
 
   Hold Buff Rotation:
-    default: ""
-    type: string
     description: |
      バーストを温存するときに使用するプリセット名を入力。
      FATEが設定した進行度(%)に達したときに使用されます。
      デフォルト: 空欄
+    default: ""
 
   Percentage to Hold Buff:
-    default: 65
-    type: int
     description: |
      バーストを温存するFATE進行度(%)を入力。
      リキャスト毎にバーストするのが理想ですが、FATE進行度が70%を超えてからバーストした場合、討伐が早すぎて数秒無駄になることがあります。
      デフォルト: 65
-     入力できる値: 整数
+    default: 65
 
   Food:
-    default: 
     description: |
      使用する飯の名前を入力。使用しない場合は空欄にしてください。
      HQを使用する場合はアイテム名の後ろに<hq>と記載してください。例: ベイクドダークエッグプラント <hq>
      デフォルト: 空欄
-    type: string
+    default: ""
 
   Potion:
-    default:
     description: |
      使用する薬品の名前を入力。使用しない場合は空欄にしてください。
      HQを使用する場合はアイテム名の後ろに<hq>と記載してください。例: 極精錬薬 <hq>
      デフォルト: 空欄
-    type: string
+    default: ""
 
   Max melee distance:
     default: 2.5
     description: |
      近接ジョブ使用時の敵からの最大距離を入力。
      デフォルト: 2.5
-     入力できる値: 小数
-    type: float
     min: 0
     max: 30
-    required: true
 
   Max ranged distance:
     default: 20
     description: |
      遠隔ジョブ使用時の敵からの最大距離を入力。
      デフォルト: 20
-     入力できる値: 小数
-    type: float
     min: 0
     max: 30
-    required: true
 
   Ignore FATE if progress is over (%):
     default: 80
     description: |
      FATEを無視する進行度(%)を入力。
      デフォルト: 80
-     入力できる値: 整数
-    type: int
     min: 0
     max: 100
-    required: true
 
   Ignore FATE if duration is less than (mins):
     default: 3
     description: |
      FATEを無視する残り時間(分)を入力。
      デフォルト: 3
-     入力できる値: 整数
-    type: int
     min: 0
     max: 100
-    required: true
 
   Ignore boss FATEs until progress is at least (%):
     default: 0
@@ -161,11 +132,8 @@ configs:
      ボスFATEに向かう進行度(%)を入力。
      設定した進行度に到達するまではボスFATEを無視します。
      デフォルト: 0
-     入力できる値: 整数
-    type: int
     min: 0
     max: 100
-    required: true
 
   Ignore Special FATEs until progress is at least (%):
     default: 20
@@ -173,154 +141,134 @@ configs:
      大型FATEに向かう進行度(%)を入力。
      設定した進行度に到達するまでは大型FATEを無視します。
      デフォルト: 20
-     入力できる値: 整数
-    type: int
     min: 0
     max: 100
-    required: true
 
   Do collection FATEs?:
     default: true
     description: |
      アイテム収集FATEを行う場合はチェックを入力。
      デフォルト: true(チェックON)
-    type: boolean
 
   Do only bonus FATEs?:
     default: false
     description: |
      ボーナス有のFATEのみを行う場合はチェックを入力。
      デフォルト: false(チェックOFF)
-    type: boolean
 
   Forlorns:
-    default: All
-    type: string
     description: |
       FATE中に出現するフォーローン系ボーナスモブへの攻撃対象を設定。
-      フォーローン・メイデンにのみ攻撃を行う場合は"Small"を入力してください。
-      フォーローン系ボーナスモブを攻撃しない場合は"None"を入力してください。
-      入力可能な選択肢:
-        - All
-        - Small
-        - None
+      フォーローン・メイデンにのみ攻撃を行う場合は"Small"を選択してください。
+      フォーローン系ボーナスモブを攻撃しない場合は"None"を選択してください。
       デフォルト: All
-    required: true
+    default: "All"
+    is_choice: true
+    choices: ["All", "Small", "None"]
 
   Change instances if no FATEs?:
     default: false
     description: |
      エリア内のFATEがなくなったときにインスタンスを変更する場合はチェックを入力。
      デフォルト: false(チェックOFF)
-    type: boolean
 
   Exchange bicolor gemstones for:
-    default: バイカラージェム納品証【黄金】
-    type: string
     description: |
-     バイカラージェムで交換するアイテム名を入力。
-     バイカラージェムを使用しない場合は空欄にしてください。
-      入力可能な選択肢:
-       - アームラ
-       - アックスビークの翼膜
-       - アルパカのフィレ肉
-       - アルマスティの毛
-       - エッグ・オブ・エルピス
-       - オウヴィボスの乳
-       - オピオタウロスの粗皮
-       - ガジャの粗皮
-       - ガルガンチュアの粗皮
-       - クンビーラの粗皮
-       - ゴンフォテリウムの粗皮
-       - サイガの粗皮
-       - シルバリオの粗皮
-       - スワンプモンクのモモ肉
-       - ダイナマイトの灰
-       - タンブルクラブの枯草
-       - チャイチャの刃爪
-       - デュナミスシャード
-       - ノパルテンダーのトゥナ
-       - バイカラージェム納品証
-       - バイカラージェム納品証【黄金】
-       - ハンサの笹身
-       - ハンマーヘッドダイルの粗皮
-       - ブラーシャの粗皮
-       - ブランチベアラーの果実
-       - ブレスト・オブ・エルピス
-       - ペタルダの鱗粉
-       - ベルカナの樹液
-       - ポイズンフロッグの粘液
-       - マウンテンチキンの粗皮
-       - ムースの肉
-       - メガマゲイの球茎
-       - ヤーコウの肩肉
-       - ルナテンダーの花
-       - レッサーアポリオンの甲殻
-       - ロネークの肩肉
-       - ロネークの獣毛
+     バイカラージェムで交換するアイテムを選択。
+     バイカラージェムを使用しない場合は"None"を選択してください。
      デフォルト: バイカラージェム納品証【黄金】
+    default: バイカラージェム納品証【黄金】
+    is_choice: true
+    choices: ["None",
+        アームラ,
+        アックスビークの翼膜,
+        アルパカのフィレ肉,
+        アルマスティの毛,
+        ウトォーム隕鉄,
+        エッグ・オブ・エルピス,
+        オウヴィボスの乳,
+        オピオタウロスの粗皮,
+        ガジャの粗皮,
+        ガルガンチュアの粗皮,
+        クンビーラの粗皮,
+        ゴンフォテリウムの粗皮,
+        サイガの粗皮,
+        シルバリオの粗皮,
+        スワンプモンクのモモ肉,
+        ダイナマイトの灰,
+        タンブルクラブの枯草,
+        チャイチャの刃爪,
+        デュナミスシャード,
+        ノパルテンダーのトゥナ,
+        バイカラージェム納品証,
+        バイカラージェム納品証【黄金】,
+        ハンサの笹身,
+        ハンマーヘッドダイルの粗皮,
+        ブラーシャの粗皮,
+        ブランチベアラーの果実,
+        ブレスト・オブ・エルピス,
+        ペタルダの鱗粉,
+        ベルカナの樹液,
+        ポイズンフロッグの粘液,
+        マウンテンチキンの粗皮,
+        ムースの肉,
+        メガマゲイの球茎,
+        ヤーコウの肩肉,
+        ルナテンダーの花,
+        レッサーアポリオンの甲殻,
+        ロネークの肩肉,
+        ロネークの獣毛]
 
   Chocobo Companion Stance:
-    default: ヒーラースタンス
     description: |
-     バディチョコボへ指示するスタンスを入力。
+     バディチョコボへの指示を選択。
      バディチョコボを呼び出さない場合は"None"を使用してください。 
-     入力可能な選択肢:
-      - 追従
-      - フリーファイト
-      - ディフェンダースタンス
-      - ヒーラースタンス
-      - アタッカースタンス
-      - None
      デフォルト: ヒーラースタンス
-    type: string
+    default: "ヒーラースタンス"
+    is_choice: true
+    choices: ["追従", "フリーファイト", "ディフェンダースタンス", "ヒーラースタンス", "アタッカースタンス", "None"]
 
   Buy Gysahl Greens?:
-    default: true
     description: |
      所持品にギサールの野菜がないときに自動で購入する場合はチェックを入力。
      チェックを入力した場合、リムサのNPC「ブルゲール商会 バンゴ・サンゴ」から99個購入します。
      デフォルト: true(チェックON)
-    type: boolean
+    default: true
 
   Self repair?:
-    default: true
     description: |
      自分で修理を行う場合はチェックを入力。
      チェックを入力しない場合はリムサの修理屋で修理を行います。
      デフォルト: true(チェックON)
-    type: boolean
+    default: true
 
   Pause for retainers?:
-    default: true
     description: |
      FATEを中断してリテイナーベンチャーを再出発させる場合はチェックを入力。
      デフォルト: true(チェックON)
-    type: boolean
+    default: true
 
   Dump extra gear at GC?:
-    default: true
-    type: boolean
     description: |
      リテイナーの持ち帰った装備をGC納品する場合はチェックを入力。
      リテイナーベンチャー再出発のオプションと組み合わせて使用することで、所持品の空き枠が0になるのを防ぎます。
+     デフォルト: true(チェックON)
+    default: true
 
   Return on death?:
-    default: true
-    type: boolean
     description: |
      戦闘不能になった場合に自動でホームポイントへ帰還する場合はチェックを入力。
+     デフォルト: true(チェックON)
+    default: true
 
   Echo logs:
     default: Gems
-    type: string
     description: |
-      echoに出力するログの種類を入力。All(全て),Gems(バイカラージェム関連のみ),None(無し)
-      入力可能な選択肢:
-        - All
-        - Gems
-        - None
-      デフォルト: Gems
+     echoに出力するログの種類を入力。All(全て),Gems(バイカラージェム関連のみ),None(無し)
+     デフォルト: Gems
+    default: "Gems"
+    is_choice: true
+    choices: ["All", "Gems", "None"]
 
 [[End Metadata]]
 --]=====]
@@ -333,40 +281,58 @@ configs:
 ********************************************************************************
 *                                  Changelog                                   *
 ********************************************************************************
-    -> 3.0.11ja by 小鳥遊レイ
-                日本語へ翻訳
-                日本語クライアント対応
-    -> 3.0.11   Revision rollup
-                Fixed Gysahl Greens purchases
-                Blacklisted "Plumbers Don't Fear Slimes" due to script crashing
-    -> 3.0.10   By baanderson40
-            a   Max melee distance fix.
-            b   WaitingForFateRewards fix.
-            c   Removed HasPlugin and implemented IPC.IsInstalled from SND **reversed**.
-            d   Removed Deliveroo and implemented AutoReainter GC Delievery.
-            e   Swapped echo yields for Engines.Run.
-            f   Added settions to config settings.
-            g   Fixed unexpected Combat.
-            h   Removed the remaining yields except for waits.
-            i   Ready function optimized and refactord.
-            j   Reworked Rotation and Dodging pluings.
-            k   Fixed Materia Extraction
-            l   Updated Config settings for BMR/VMR rotations
-            m   Added option to move to random location after fate if none are eligible.
-            n   Actually fixed WaitingForFateRewards & instance hopping.
-    -> 3.0.9    By Allison.
-                Fix standing in place after fate finishes bug.
-                Add config options for Rotation Plugin and Dodging Plugin (Fixed bug when multiple solvers present at once)
-                Update description to more accurately reflect script. 
-                Cleaned up metadata + changed description to more accurately reflect script.
-                Small change to combat related distance to target checks to more accurately reflect how FFXIV determines if abilities are usable (no height). Hopefully fixes some max distance checks during combat.
-                Small Bugfixes.
-    -> 3.0.6    Adding metadata
-    -> 3.0.5    Fixed repair function
-    -> 3.0.4    Remove noisy logging
-    -> 3.0.2    Fixed HasPlugin check
-    -> 3.0.1    Fixed typo causing it to crash
-    -> 3.0.0    Updated for SND2
+    -> 3.1.2a ja1 by 小鳥遊レイ
+                  コンフィグ設定のみ3.1.2aに対応
+    -> 3.1.2      Fix VBM/BMR hold buff rotation setting issue
+    -> 3.1.1      Reverted RSR auto to just 'on'
+    -> 3.1.0      Updated to support companion scripts by Minnu
+
+********************************************************************************
+    -> 3.0.21     Updated meta data config settings
+    -> 3.0.20     Fixed unexptected combat while moving
+    -> 3.0.19     Fixed random pathing to mob target
+    -> 3.0.18     Fixed Mender and Darkmatter npc positions
+    -> 3.0.17     Removed types from config settings
+    -> 3.0.16     Corrected Bossmod Reborn spelling for dodging plugin
+    -> 3.0.15     Added none as a purchase option to disable purchases
+    -> 3.0.14     Fixed setting issue with Percentage to hold buff
+    -> 3.0.13     Added list for settings
+    -> 3.0.12     By baanderson40
+                  Fixed TextAdvance enabling
+    -> 3.0.11ja   by 小鳥遊レイ
+                  日本語へ翻訳
+                  日本語クライアント対応
+    -> 3.0.11     Revision rollup
+                  Fixed Gysahl Greens purchases
+                  Blacklisted "Plumbers Don't Fear Slimes" due to script crashing
+    -> 3.0.10     By baanderson40
+            a     Max melee distance fix.
+            b     WaitingForFateRewards fix.
+            c     Removed HasPlugin and implemented IPC.IsInstalled from SND **reversed**.
+            d     Removed Deliveroo and implemented AutoReainter GC Delievery.
+            e     Swapped echo yields for Engines.Run.
+            f     Added settions to config settings.
+            g     Fixed unexpected Combat.
+            h     Removed the remaining yields except for waits.
+            i     Ready function optimized and refactord.
+            j     Reworked Rotation and Dodging pluings.
+            k     Fixed Materia Extraction
+            l     Updated Config settings for BMR/VMR rotations
+            m     Added option to move to random location after fate if none are eligible.
+            n     Actually fixed WaitingForFateRewards & instance hopping.
+    -> 3.0.9      By Allison.
+                  Fix standing in place after fate finishes bug.
+                  Add config options for Rotation Plugin and Dodging Plugin (Fixed bug when multiple solvers present at once)
+                  Update description to more accurately reflect script. 
+                 Cleaned up metadata + changed description to more accurately reflect script.
+                  Small change to combat related distance to target checks to more accurately reflect how FFXIV determines if abilities are usable (no height). Hopefully fixes some max distance checks during combat.
+                  Small Bugfixes.
+    -> 3.0.6      Adding metadata
+    -> 3.0.5      Fixed repair function
+    -> 3.0.4      Remove noisy logging
+    -> 3.0.2      Fixed HasPlugin check
+    -> 3.0.1      Fixed typo causing it to crash
+    -> 3.0.0      Updated for SND2
 
 ********************************************************************************
 *                                 必須プラグイン                                *
