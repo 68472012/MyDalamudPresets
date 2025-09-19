@@ -1,7 +1,7 @@
 --[=====[
 [[SND Metadata]]
-author: baanderson40 || orginially pot0to  ||  日本語訳 小鳥遊レイ
-version: 3.1.2a ja2
+author: baanderson40 || orginially pot0to  ||  日本語化 小鳥遊レイ
+version: 3.1.3 ja
 description: |
   このスクリプトでできること: 
   - バイカラージェムの所持数が上限に近づくとバイカラージェム納品証（新旧どちらでも）へ交換に行きます
@@ -18,11 +18,10 @@ description: |
     Support via    https://ko-fi.com/baanderson40
   ※小鳥遊コメント※
   - オプションプラグインでGC納品用にDeliverooが必要と書かれていますが、AutoRetainerでGC納品するように書かれており、また実際の動作でもAutoRetainerで納品が行われています。軍票交換品の設定などにご注意ください。
-  - 3349行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
-  - 3472行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
+  - 3348行目付近の「-- バディチョコボ」の項目で再召喚するタイマーの残り時間を設定できます。
+  - 3471行目付近の「--FATE終了後の動作設定」の項目で、GC納品を行う所持品の空き、修理を行う耐久値などが設定できます。
   - Companionスクリプトの日本語版については現在準備中です。
-  - ver3.1.2aにおいて、自動スキル回しプラグインとしてBMR/VBMを使用する場合はコンフィグ設定から必ずプリセット名を入力してください。
-  - ver3.1.2aにおいて、コンフィグ設定のCompanion Script Modeをオフにしていてもスクリプト開始時に「The companion script will overwrite changing instances.」とEchoに出力されますが現状仕様です。
+  - ver3.1.3において、自動スキル回しプラグインとしてBMR/VBMを使用する場合はコンフィグ設定から必ずプリセット名を入力してください。
 
 plugin_dependencies:
 - Lifestream
@@ -291,11 +290,11 @@ configs:
 ********************************************************************************
 *                                  Changelog                                   *
 ********************************************************************************
-    -> 3.1.2a ja2 by 小鳥遊レイ
-                  3.1.2aの日本語クライアント対応
+    -> 3.1.3 ja   3.1.3の日本語クライアント対応
+    -> 3.1.3      Companion script echo logic changed to true only
+    -> 3.1.2a ja2 3.1.2aの日本語クライアント対応
     -> 3.1.2a ja1 コンフィグ設定のみ3.1.2aに対応
-    -> 3.1.2      By baanderson40
-                  Fix VBM/BMR hold buff rotation setting issue
+    -> 3.1.2      Fix VBM/BMR hold buff rotation setting issue
     -> 3.1.1      Reverted RSR auto to just 'on'
     -> 3.1.0      Updated to support companion scripts by Minnu
 
@@ -3555,8 +3554,8 @@ Dalamud.Log("[FATE] Starting fate farming script.")
 State = CharacterState.ready
 CurrentFate = nil
 
-if CompanionScriptMode == EnableChangeInstance then
-    yield("/echo The companion script will overwrite changing instances.（注：CompanionScriptMode が false の場合でも表示されることがあります）")
+if CompanionScriptMode then
+    yield("/echo The companion script will overwrite changing instances.")
     EnableChangeInstance = false
 end
 
