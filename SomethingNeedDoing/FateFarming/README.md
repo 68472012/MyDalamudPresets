@@ -11,4 +11,9 @@ https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua<b
 
 ### or
 
-新SNDで新しくLuaマクロを作りスクリプト内容をコピペしてください。(手動更新)
+新SNDで新しくLuaマクロを作りスクリプト内容をコピペしてください。(手動更新)<br/>
+<br/>
+
+## アップデート（自動更新）<br/>
+各マクロの右上にあるベルのアイコンをクリックすることでアップデートできます。<br/>
+<img width="242" height="114" alt="Image" src="https://github.com/user-attachments/assets/2be03133-549a-48e4-b230-e241d7c28369" />
