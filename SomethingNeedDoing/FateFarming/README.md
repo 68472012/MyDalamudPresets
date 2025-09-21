@@ -9,7 +9,7 @@ https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua<b
 https://github.com/68472012/MyDalamudPresets/blob/main/SomethingNeedDoing/FateFarming/Fate%20Farming%20ja.lua
 ```
 <br/>
-<img width="399" height="291" alt="Image" src="https://github.com/user-attachments/assets/f22455eb-0974-40b6-a759-8f6d49f7b8f5" /><br/>
+<img width="399" height="291" alt="Image" src="https://github.com/user-attachments/assets/b234fee7-9a5b-40c9-80d9-d562292bdc20" /><br/>
 <img width="704" height="227" alt="Image" src="https://github.com/user-attachments/assets/dc5bb236-9bea-4d4b-8cae-8df7f1fa8255" />
 
 ### or
