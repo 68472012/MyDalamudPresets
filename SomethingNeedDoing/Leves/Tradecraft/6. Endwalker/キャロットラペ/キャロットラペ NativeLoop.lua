@@ -7,9 +7,21 @@ description: |
   Nativeマクロです。
 
 plugin_dependencies:
-普通に改行でok
+ - YesAlready
+ - TextAdvance
 
 configs:
-普通に改行でok
+ 
 [[End Metadata]]
 --]=====]
+
+/target グリッグ
+/interact <wait.0.5>
+/callback SelectString true 1 <wait.0.5>
+/callback GuildLeve true 3 1643 <wait.0.5>
+/callback GuildLeve true -1 <wait.0.5>
+/callback SelectString true 3 <wait.0.5>
+/target アルダイルン
+/interact <wait.1>
+/callback JournalResult true 0 <wait.1>
+/loop
