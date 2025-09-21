@@ -1,4 +1,4 @@
-# FateFarming<br/>
+# FateFarming [Lua]<br/>
 [こちら](https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua)のスクリプトを日本語クライアントに対応させたもの<br/>
 https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua<br/>
 <br/>
@@ -10,7 +10,7 @@ https://github.com/68472012/MyDalamudPresets/blob/main/SomethingNeedDoing/FateFa
 ```
 <br/>
 <img width="399" height="291" alt="Image" src="https://github.com/user-attachments/assets/f22455eb-0974-40b6-a759-8f6d49f7b8f5" /><br/>
-<img width="704" height="227" alt="Image" src="https://github.com/user-attachments/assets/32f1e50c-a144-4b43-805d-53a838cc9886" />
+<img width="704" height="227" alt="Image" src="https://github.com/user-attachments/assets/dc5bb236-9bea-4d4b-8cae-8df7f1fa8255" />
 
 ### or
 
