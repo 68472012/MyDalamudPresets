@@ -14,7 +14,7 @@ https://github.com/68472012/MyDalamudPresets/blob/main/SomethingNeedDoing/FateFa
 
 ### or
 
-新SNDで新しくLuaマクロを作りスクリプト内容をコピペしてください。(手動更新)<br/>
+新SNDで新しくマクロを作りスクリプト内容をコピペしてください。(手動更新)<br/>
 <br/>
 
 ## アップデート（自動更新）<br/>
