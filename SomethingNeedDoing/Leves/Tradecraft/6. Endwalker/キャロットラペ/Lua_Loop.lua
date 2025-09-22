@@ -7,7 +7,7 @@ description: |
   リーヴ券の有無に関わらず手動で停止するまで動作し続けますが、アイテムがなくなった場合は自動的に停止します。
   自動停止した場合にはechoに「納品アイテムが不足しています」と出力されます。
   必要なプラグインや設定はREADMEを確認してください。
-  README -> https://github.com/68472012/MyDalamudPresets/tree/main/SomethingNeedDoing/Leves/Tradecraft/6.%20Endwalker
+  README -> https://github.com/68472012/MyDalamudPresets/blob/main/SomethingNeedDoing/Leves/Tradecraft/6.%20Endwalker/キャロットラペ/README.md
 
 plugin_dependencies:
  - YesAlready

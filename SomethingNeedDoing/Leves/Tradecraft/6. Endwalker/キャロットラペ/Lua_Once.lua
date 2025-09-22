@@ -7,8 +7,8 @@ description: |
   リーヴ受注～納品を1回行うと停止します。
   もし納品アイテムが足りない状態で実行しようとした場合は、echoに「納品アイテムが不足しています」と出力し停止します。
   必要なプラグインや設定はREADMEを確認してください。
-  README -> https://github.com/68472012/MyDalamudPresets/tree/main/SomethingNeedDoing/Leves/Tradecraft/6.%20Endwalker
-
+  README -> https://github.com/68472012/MyDalamudPresets/blob/main/SomethingNeedDoing/Leves/Tradecraft/6.%20Endwalker/キャロットラペ/README.md
+  
 plugin_dependencies:
  - YesAlready
  - TextAdvance
