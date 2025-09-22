@@ -3,8 +3,10 @@
 author: 小鳥遊レイ
 version: 1.0
 description: |
-  オールド・シャーレアンのリーヴ受注NPC「グリッグ」と納品NPC「アルダイルン」の間に立って実行すると自動でリーヴ受注～納品を行います。
-  Nativeマクロです。
+  オールド・シャーレアンのリーヴ受注NPC「グリッグ」と納品NPC「アルダイルン」の間に立って実行すると自動でリーヴ受注～納品を行うNativeマクロです。
+  アイテムの有無やリーヴ券の有無にかかわらず手動で停止するまで動作し続けます。
+  必要なプラグインや設定はREADMEを確認してください。
+  README -> https://github.com/68472012/MyDalamudPresets/tree/main/SomethingNeedDoing/Leves/Tradecraft/6.%20Endwalker
 
 plugin_dependencies:
  - YesAlready
