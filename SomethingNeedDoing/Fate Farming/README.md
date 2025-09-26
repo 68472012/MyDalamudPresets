@@ -1,29 +1,27 @@
-# Fate Scripts<br/>　
+# Fate Scripts<br/>
 FATEに関する新SND用のLuaスクリプト。<br/>
 
 ## Scripts<br/>
-- Fate Farming ja<br/>
+
+- **Fate Farming ja**<br/>
 [こちら](https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Fate%20Farming.lua)のスクリプトを日本語クライアントに対応させたもの<br/>
 
   - 指定されたエリアでFATEを周回する
   - バイカラージェムとアイテムを交換する
   - 可能な場合はリテイナーを再出発させる<br/>
-  <br/>
-  **使用方法**<br/>
-  1. 周回したいエリアで`Fate Farming ja`を起動する
+  
+  <ins>使用方法</ins><br/>
+  1．周回したいエリアで`Fate Farming ja`を起動する
 
-<br/>
-
-- Multi Zone Farming<br/>
-本家のものを使用してください
-  - `Fate Farming.lua(Fate Farming ja.lua)`と併用することを前提とした複数エリア周回用補助スクリプト<br/>
+- **Multi Zone Farming**（本家のものを使用）<br/>
+  `Fate Farming / Fate Farming ja`と併用することを前提とした複数エリア周回用補助スクリプト<br/>
   起動するとオルコパチャからFATE周回を開始します<br/>
-  <br/>
-  **使用方法**<br/>
-  1. `Fate Farming / Fate Farming ja`のコンフィグ設定`Companion Script Mode`にチェックを入れる
-  2. `Multi Zone Farming`のコンフィグ設定`FateMacro`に`Fate Farming / Fate Farming ja`を取り込んだマクロの名前を入力する
-  3. `Multi Zone Farming`を起動する<br/>
-    （`Fate Farming / Fate Farming ja`は自動で起動します）
+  
+  <ins>使用方法</ins><br/>
+  1．`Fate Farming / Fate Farming ja`のコンフィグ設定`Companion Script Mode`にチェックを入れる<br/>
+  2．`Multi Zone Farming`のコンフィグ設定`FateMacro`に`Fate Farming / Fate Farming ja`を取り込んだマクロの名前を入力する<br/>
+  3．`Multi Zone Farming`を起動する<br/>
+&emsp;（`Fate Farming / Fate Farming ja`は自動で起動します）
   <br/>
 
 <!-- - Occult Demiatma Farming
