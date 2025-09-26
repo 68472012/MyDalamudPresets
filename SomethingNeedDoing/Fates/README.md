@@ -37,7 +37,7 @@ FATEに関する新SND用のLuaスクリプト。<br/>
 
 ### Fate Farming ja.lua
 ```
-https://github.com/92812813/MyDalamudPresets/blob/main/SomethingNeedDoing/Fate%20Farming/Fate%20Farming%20ja.lua
+https://github.com/92812813/MyDalamudPresets/blob/main/SomethingNeedDoing/Fates/Fate%20Farming%20ja.lua
 ```
 ### Multi Zone Farming.lua
 ```
