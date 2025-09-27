@@ -43,8 +43,8 @@ Talkタブに以下のふたつを追加。<br/>
 
 ## インストール<br/>
 スクリプトのGitHubURLをコピーし新SNDのGitHub URL内に貼り付けてCreateまたはImportを押してください。(自動更新)<br/>
-<img width="399" height="291" alt="Image" src="https://github.com/user-attachments/assets/b234fee7-9a5b-40c9-80d9-d562292bdc20" /><br/>
-<img width="704" height="227" alt="Image" src="https://github.com/user-attachments/assets/dc5bb236-9bea-4d4b-8cae-8df7f1fa8255" />
+<img width="399" height="291" alt="Image" src="https://github.com/user-attachments/assets/2038f686-9678-46ff-aa63-6aadcd4945eb" /><br/>
+<img width="704" height="227" alt="Image" src="https://github.com/user-attachments/assets/dcd89f9d-8a4a-42b6-ba0b-b269e90f685c" />
 
 ### or
 
