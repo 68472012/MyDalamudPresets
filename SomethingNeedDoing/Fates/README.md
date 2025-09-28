@@ -21,14 +21,24 @@ FATEに関する新SND用のLuaスクリプト。<br/>
   1．`Fate Farming / Fate Farming ja`のコンフィグ設定`Companion Script Mode`にチェックを入れる<br/>
   2．`Multi Zone Farming`のコンフィグ設定`FateMacro`に`Fate Farming / Fate Farming ja`を取り込んだマクロの名前を入力する<br/>
   3．`Multi Zone Farming`を起動する<br/>
-  &emsp;（`Fate Farming / Fate Farming ja`は自動で起動します）
+  &emsp;※`Fate Farming / Fate Farming ja`は自動で起動します
   <br/>
 
-<!-- - Occult Demiatma Farming
-  - `Fate Farming.lua(Fate Farming ja.lua)`と併用することを前提としたデミアートマ収集用補助スクリプト<br/>
+- **Occult Demiatma Farming**（本家のものを使用）<br/>
+  `Fate Farming.lua(Fate Farming ja.lua)`と併用することを前提としたデミアートマ収集用補助スクリプト<br/>
+  起動したエリア内でFATE周回を行います<br/>
+
+  <ins>使用方法</ins><br/>
+  1．`Fate Farming / Fate Farming ja`のコンフィグ設定`Companion Script Mode`にチェックを入れる<br/>
+  2．`Occult Demiatma Farming`のコンフィグ設定`FateMacro`に`Fate Farming / Fate Farming ja`を取り込んだマクロの名前を入力する<br/>
+  3．`Occult Demiatma Farming`のコンフィグ設定`NumberToFarm`に必要なデミアートマの個数を入力する<br/>
+  4．`Occult Demiatma Farming`を起動する<br/>
+  &emsp;※`Fate Farming / Fate Farming ja`は自動で起動します<br/>
+  &emsp;※エリア内にFATEがなくなった場合にEcho及びTextAdvanceが荒ぶっているように見えますが仕様です
+
 <br/>
 
-- Zodiac Atma Farming
+<!-- - Zodiac Atma Farming
   - `Fate Farming.lua(Fate Farming ja.lua)`と併用することを前提としたアートマ収集用補助スクリプト -->
 
 ## インストール<br/>
@@ -43,10 +53,11 @@ https://github.com/92812813/MyDalamudPresets/blob/main/SomethingNeedDoing/Fates/
 ```
 https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Multi%20Zone%20Farming.lua
 ```
-<!-- Occult Demiatma Farming.lua
+### Occult Demiatma Farming.lua
 ```
+https://github.com/baanderson40/SND_Scripts/blob/main/Fates/Occult%20Demiatma%20Farming.lua
 ```
-Zodiac Atma Farming.lua
+<!-- Zodiac Atma Farming.lua
 ```
 ``` -->
 <br/>
